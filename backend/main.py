@@ -1,7 +1,20 @@
+# main.py
 from fastapi import FastAPI
-from routers import users, receipts
+from fastapi.middleware.cors import CORSMiddleware
+from routers import users, receipts   # your routers
 
 app = FastAPI(title="TrackIt‑AI API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[                    # dev: allow localhost front‑end
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],               # GET, POST, OPTIONS, etc.
+    allow_headers=["*"],               # Content-Type, Authorization …
+)
 
 app.include_router(users.router)
 app.include_router(receipts.router)
