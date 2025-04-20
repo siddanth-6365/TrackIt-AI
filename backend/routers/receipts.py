@@ -1,8 +1,9 @@
 import json, asyncio
-from fastapi import APIRouter, File, UploadFile, Form, HTTPException
+from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Query
 from pydantic import BaseModel, Field
 from concurrent.futures import ThreadPoolExecutor
 from services import ocr_service, llm_service, receipt_service
+from typing import List
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 executor = ThreadPoolExecutor(max_workers=4)
@@ -15,6 +16,10 @@ class ReceiptOut(BaseModel):
     total_amount: float | None
     expense_category: str | None
     items: list = Field(default_factory=list)
+    
+class ReceiptList(BaseModel):
+    receipts: List[ReceiptOut]
+    total:   int
 
 @router.post("/upload", response_model=ReceiptOut)
 async def upload_receipt(user_id: str = Form(...), file: UploadFile = File(...)):
@@ -48,3 +53,26 @@ async def upload_receipt(user_id: str = Form(...), file: UploadFile = File(...))
         return rec
     except Exception as e:
         raise HTTPException(500, str(e))
+    
+    
+@router.get(
+    "/user/{user_id}",
+    response_model=ReceiptList,
+    summary="Get all receipts for a user (paginated)",
+)
+async def get_user_receipts(
+    user_id: str,
+    limit: int = Query(50),
+    offset: int = Query(0),
+):
+    """
+    Fetch receipts belonging to `user_id`.
+    Optional query params:
+      • limit  – max rows returned (default 50)  
+      • offset – pagination start (default 0)
+    """
+    try:
+        records, total = await receipt_service.get_receipts(user_id, limit, offset)
+        return ReceiptList(receipts=records, total=total)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
