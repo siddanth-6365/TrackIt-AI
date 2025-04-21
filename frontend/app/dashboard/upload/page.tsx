@@ -1,145 +1,151 @@
-"use client"
+"use client";
+import React, { useState, useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/components/auth-provider";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, Upload, ImageIcon, Check, X, Receipt } from "lucide-react";
 
-import type React from "react"
+const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-import { useState, useRef } from "react"
-import { useAuth } from "@/components/auth-provider"
-import { useToast } from "@/hooks/use-toast"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2, Upload, ImageIcon, Check, X, Receipt } from "lucide-react"
-import Image from "next/image"
+const UploadReceiptPage: React.FC = () => {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-export default function UploadReceiptPage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [extractedData, setExtractedData] = useState<any>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const { user } = useAuth()
-  const { toast } = useToast()
+  /* ---------- helpers ---------- */
+  const readPreview = (f: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => setPreview(e.target?.result as string);
+    reader.readAsDataURL(f);
+  };
+  const resetForm = () => {
+    setFile(null);
+    setPreview(null);
+    setExtractedData(null);
+    fileInputRef.current && (fileInputRef.current.value = "");
+  };
 
+  /* ---------- drag / file change ---------- */
+  const setNewFile = (f: File) => {
+    setFile(f);
+    readPreview(f);
+    setExtractedData(null);
+  };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0]
-      setFile(selectedFile)
-
-      // Create preview
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setPreview(event.target?.result as string)
-      }
-      reader.readAsDataURL(selectedFile)
-
-      // Reset extracted data
-      setExtractedData(null)
-    }
-  }
-
+    if (e.target.files?.[0]) setNewFile(e.target.files[0]);
+  };
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0]
-      setFile(droppedFile)
+    e.preventDefault();
+    if (e.dataTransfer.files?.[0]) setNewFile(e.dataTransfer.files[0]);
+  };
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
 
-      // Create preview
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setPreview(event.target?.result as string)
-      }
-      reader.readAsDataURL(droppedFile)
+  /* ------ change handlers ------ */
+  const updateField = (key: string, value: any) => {
+    setExtractedData((prev: any) => ({ ...prev, [key]: value }));
+  };
+  const updateItem = (idx: number, key: string, value: any) => {
+    setExtractedData((prev: any) => {
+      const items = [...(prev.items || [])];
+      items[idx] = { ...items[idx], [key]: value };
+      return { ...prev, items };
+    });
+  };
 
-      // Reset extracted data
-      setExtractedData(null)
+  /* ------ extract ------ */
+  const extractReceipt = async () => {
+    if (!file || !user) return;
+    setIsUploading(true);
+    const form = new FormData();
+    form.append("file", file);
+    form.append("user_id", user.id);
+    try {
+      const res = await fetch(`${apiURL}/receipts/extract`, { method: "POST", body: form });
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setExtractedData(json);
+      toast({ title: "Extraction complete", description: "Review and edit before saving." });
+    } catch (e: any) {
+      toast({ title: "Extract failed", description: e.message, variant: "destructive" });
+    } finally {
+      setIsUploading(false);
     }
-  }
+  };
 
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-  }
+  /* ------ save ------ */
+  // ───────────────── save as JSON ─────────────────
+  const saveReceipt = async () => {
+    if (!extractedData || !user) return;
 
-  const handleUpload = async () => {
-    if (!file || !user) return
-
-    setIsUploading(true)
-    setIsProcessing(false)
+    setIsProcessing(true);
 
     try {
-      // Create form data
-      const formData = new FormData()
-      formData.append("receipt", file)
-      formData.append("user_id", user.id)
-
-      // Upload to backend
-      const response = await fetch("http://localhost:8000/receipts/upload", {
+      const res = await fetch(`${apiURL}/receipts/save`, {
         method: "POST",
-        body: formData,
-      })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: user.id,      // keep snake‑case to match backend model
+          payload: extractedData // full editable object
+        }),
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to upload receipt")
-      }
+      if (!res.ok) throw new Error(await res.text());
 
-      // Process the receipt with AI
-      setIsUploading(false)
-      setIsProcessing(true)
-
-      const data = await response.json()
-      setExtractedData(data)
-
+      toast({ title: "Receipt saved!" });
+      resetForm();
+    } catch (e: any) {
       toast({
-        title: "Receipt uploaded successfully",
-        description: "The receipt data has been extracted and saved.",
-      })
-    } catch (error) {
-      console.error("Upload error:", error)
-      toast({
-        title: "Upload failed",
-        description: "There was an error uploading your receipt. Please try again.",
+        title: "Save failed",
+        description: e.message || "Something went wrong",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsUploading(false)
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
 
-  const resetForm = () => {
-    setFile(null)
-    setPreview(null)
-    setExtractedData(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
-    }
-  }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Upload Receipt</h1>
-        <p className="text-muted-foreground">Upload a receipt image and our AI will extract all the details</p>
+        <p className="text-muted-foreground">Upload a receipt and let AI do the rest.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* -------- Upload Card ------- */}
         <Card>
           <CardHeader>
             <CardTitle>Upload Receipt Image</CardTitle>
-            <CardDescription>Take a photo or upload an image of your receipt</CardDescription>
+            <CardDescription>Drag a photo or browse files</CardDescription>
           </CardHeader>
           <CardContent>
             <div
-              className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center h-64 ${
-                preview ? "border-emerald-200 bg-emerald-50" : "border-gray-300 hover:border-emerald-300"
-              }`}
+              className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center h-64 ${preview ? "border-emerald-200 bg-emerald-50" : "border-gray-300 hover:border-emerald-300"
+                }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
               {preview ? (
                 <div className="relative w-full h-full">
-                  <Image src={preview || "/placeholder.svg"} alt="Receipt preview" fill className="object-contain" />
+                  <Image src={preview} alt="Receipt preview" fill className="object-contain" />
                   <Button variant="destructive" size="icon" className="absolute top-2 right-2" onClick={resetForm}>
                     <X className="h-4 w-4" />
                   </Button>
@@ -149,94 +155,127 @@ export default function UploadReceiptPage() {
                   <div className="mb-4 rounded-full bg-emerald-100 p-3">
                     <ImageIcon className="h-6 w-6 text-emerald-600" />
                   </div>
-                  <h3 className="text-lg font-medium mb-1">Drag and drop your receipt</h3>
-                  <p className="text-sm text-muted-foreground mb-4">or click to browse files (JPG, PNG, PDF)</p>
+                  <h3 className="text-lg font-medium mb-1">Drag & drop</h3>
+                  <p className="text-sm text-muted-foreground mb-4">or click to browse</p>
                   <Button onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" /> Choose File
                   </Button>
-                  <Input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,application/pdf"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
+                  <Input ref={fileInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} />
                 </>
               )}
             </div>
           </CardContent>
           <CardFooter>
             <Button
-              onClick={handleUpload}
+              onClick={extractReceipt}
               className="w-full bg-emerald-600 hover:bg-emerald-700"
               disabled={!file || isUploading || isProcessing}
             >
               {isUploading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Uploading…
                 </>
               ) : isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing with AI...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…
                 </>
               ) : (
                 <>
-                  <Upload className="mr-2 h-4 w-4" /> Upload & Process Receipt
+                  <Upload className="mr-2 h-4 w-4" /> Upload & Process
                 </>
               )}
             </Button>
           </CardFooter>
         </Card>
 
+        {/* -------- Extracted Data Card ------- */}
         <Card>
           <CardHeader>
-            <CardTitle>Extracted Data</CardTitle>
-            <CardDescription>AI-extracted information from your receipt</CardDescription>
+            <CardTitle>Review & Edit</CardTitle>
+            <CardDescription>Update any incorrect fields before saving</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             {extractedData ? (
-              <div className="space-y-4">
+              <>
+                {[
+                  { key: "vendor", label: "Vendor" },
+                  { key: "transaction_date", label: "Date" },
+                  { key: "total_amount", label: "Total" },
+                  { key: "expense_category", label: "Category" },
+                ].map(({ key, label }) => (
+                  <div key={key}>
+                    <Label>{label}</Label>
+                    <Input
+                      value={extractedData[key] ?? ""}
+                      className="mt-1"
+                      onChange={(e) => updateField(key, e.target.value)}
+                    />
+                  </div>
+                ))}
+
+                {/* items table editable */}
                 <div>
-                  <Label>Vendor</Label>
-                  <div className="p-2 border rounded-md mt-1 bg-gray-50">{extractedData.vendor || "Not detected"}</div>
-                </div>
-                <div>
-                  <Label>Date</Label>
-                  <div className="p-2 border rounded-md mt-1 bg-gray-50">
-                    {extractedData.transaction_date || "Not detected"}
+                  <Label>Items</Label>
+                  <div className="border rounded-md mt-1 overflow-auto max-h-52">
+                    {extractedData.items?.length ? (
+                      <table className="min-w-full text-sm">
+                        <thead className="bg-muted sticky top-0">
+                          <tr>
+                            <th className="px-2 py-1 text-left">Name</th>
+                            <th className="px-2 py-1 text-right">Qty</th>
+                            <th className="px-2 py-1 text-right">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {extractedData.items.map((it: any, i: number) => (
+                            <tr key={i} className="odd:bg-white even:bg-gray-50">
+                              <td className="px-2 py-1">
+                                <Input
+                                  value={it.name || ""}
+                                  onChange={(e) => updateItem(i, "name", e.target.value)}
+                                />
+                              </td>
+                              <td className="px-2 py-1">
+                                <Input
+                                  type="number"
+                                  value={it.quantity || 1}
+                                  onChange={(e) => updateItem(i, "quantity", +e.target.value)}
+                                />
+                              </td>
+                              <td className="px-2 py-1">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={it.price || 0}
+                                  onChange={(e) => updateItem(i, "price", +e.target.value)}
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p className="p-2 text-muted-foreground">No items detected</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <Label>Total Amount</Label>
-                  <div className="p-2 border rounded-md mt-1 bg-gray-50">
-                    ${extractedData.total_amount || "Not detected"}
-                  </div>
-                </div>
-                <div>
-                  <Label>Category</Label>
-                  <div className="p-2 border rounded-md mt-1 bg-gray-50">
-                    {extractedData.expense_category || "Not detected"}
-                  </div>
-                </div>
-              </div>
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center text-center p-6 border border-dashed rounded-lg h-64">
-                <div className="mb-4 rounded-full bg-gray-100 p-3">
-                  <Receipt className="h-6 w-6 text-gray-500" />
-                </div>
-                <h3 className="text-lg font-medium mb-1">No data yet</h3>
-                <p className="text-sm text-muted-foreground">Upload a receipt to see the extracted information</p>
+                <Receipt className="h-6 w-6 text-gray-500 mb-2" />
+                <p>Extract data first</p>
               </div>
             )}
           </CardContent>
           <CardFooter>
             {extractedData && (
-              <div className="w-full flex justify-between">
+              <div className="w-full flex justify-end space-x-2">
                 <Button variant="outline" onClick={resetForm}>
                   <X className="mr-2 h-4 w-4" /> Reset
                 </Button>
-                <Button className="bg-emerald-600 hover:bg-emerald-700">
-                  <Check className="mr-2 h-4 w-4" /> Save Receipt
+                <Button onClick={saveReceipt} disabled={isProcessing} className="bg-emerald-600 hover:bg-emerald-700">
+                  {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                  Save Receipt
                 </Button>
               </div>
             )}
@@ -244,5 +283,7 @@ export default function UploadReceiptPage() {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default UploadReceiptPage;

@@ -8,6 +8,7 @@ import { Upload, Receipt, PieChart, ArrowRight } from "lucide-react"
 
 export default function Dashboard() {
   const { user } = useAuth()
+  console.log(user)
 
   return (
     <div className="space-y-6">
@@ -37,7 +38,7 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
@@ -74,7 +75,7 @@ export default function Dashboard() {
             />
           </CardContent>
         </Card>
-      </div>
+      </div> */}
     </div>
   )
 }

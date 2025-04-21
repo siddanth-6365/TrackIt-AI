@@ -79,7 +79,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <h3 className="text-xl font-bold">ReceiptAI</h3>
+              <h3 className="text-xl font-bold">TrackIt-AI</h3>
               <p className="text-gray-400">Your personal finance assistant</p>
             </div>
             <div className="flex gap-6">
@@ -98,7 +98,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-6 text-center md:text-left text-gray-500">
-            &copy; {new Date().getFullYear()} ReceiptAI. All rights reserved.
+            &copy; {new Date().getFullYear()} TrackIt-AI. All rights reserved.
           </div>
         </div>
       </footer>
@@ -106,7 +106,7 @@ export default function LandingPage() {
   )
 }
 
-function FeatureCard({ icon, title, description }) {
+function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <div className="mb-4">{icon}</div>
