@@ -1,7 +1,7 @@
 # main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import users, receipts   # your routers
+from routers import users, receipts, query
 
 app = FastAPI(title="TrackIt‑AI API")
 
@@ -18,3 +18,4 @@ app.add_middleware(
 
 app.include_router(users.router)
 app.include_router(receipts.router)
+app.include_router(query.router)

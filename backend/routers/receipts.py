@@ -21,7 +21,6 @@ class ReceiptList(BaseModel):
     receipts: List[ReceiptOut]
     total:   int
 
-# --- new response schema that includes raw items -------------------------
 class ExtractedReceipt(BaseModel):
     vendor: str | None
     transaction_date: str | None
@@ -33,7 +32,8 @@ class SaveRequest(BaseModel):
     user_id: str
     payload: ExtractedReceipt
 
-# ------------------------------------------------------------------------
+
+# /receipts/extract
 @router.post("/extract", response_model=ExtractedReceipt)
 async def extract_receipt(user_id: str = Form(...), file: UploadFile = File(...)):
     """

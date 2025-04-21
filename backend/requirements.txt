@@ -6,3 +6,4 @@ pytesseract
 Pillow
 groq
 pydantic
+google-generativeai
