@@ -21,16 +21,35 @@ def clean_response(text: str) -> str:
     return text
 
 def call_extract_details_sync(ocr_text: str) -> str:
-    prompt = (
-        "You are an expert financial document parser. "
-        "Given the following raw text from a receipt, extract the following details into a JSON object with keys "
-        "\"total_amount\", \"transaction_date\", \"vendor\", and \"items\". "
-        "The \"items\" key should be an array of objects where each object contains \"name\", \"price\", and \"quantity\" representing the purchased items. "
-        "If any detail is missing, set its value to null (for total_amount, transaction_date, and vendor) or an empty array for items. "
-        "Ensure the JSON is strictly valid and output only the JSON, nothing else.\n\n"
-        "Receipt Text:\n" + ocr_text + "\n\n"
-        "Output only the JSON, nothing else."
-    )
+    prompt = f"""
+You are an expert financial‑document parser.
+
+**Task**  
+Return ONLY a valid JSON object with the following keys
+(never wrap it in markdown, code fences, or extra text):
+
+{{  
+  "total_amount":        number  | null,     // e.g. 123.45  
+  "transaction_date":    "YYYY-MM-DD" | null,  
+  "vendor":              string | null,  
+  "items": [             // zero or more  
+    {{
+      "name":      string,  
+      "price":     number | null,  
+      "quantity":  number | null  
+    }}  
+  ]  
+}}
+
+If a field is missing set it to **null** (or `[]` for items).
+
+---  
+Receipt Text:  
+{ocr_text}
+
+---  
+Output ONLY the JSON.
+"""
     
     completion = client.chat.completions.create(
         model="meta-llama/llama-4-scout-17b-16e-instruct",

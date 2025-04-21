@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, ImageIcon, Check, X, Receipt } from "lucide-react";
+import { Loader2, Upload, ImageIcon, Check, X, Receipt, Plus,Trash2 } from "lucide-react";
 
 const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -65,6 +65,18 @@ const UploadReceiptPage: React.FC = () => {
     setExtractedData((prev: any) => {
       const items = [...(prev.items || [])];
       items[idx] = { ...items[idx], [key]: value };
+      return { ...prev, items };
+    });
+  };
+
+  const addItem = () => {
+    const newItem = { name: "", quantity: 1, price: 0 };
+    setExtractedData((prev: any) => ({ ...prev, items: [...(prev.items || []), newItem] }));
+  };
+  const deleteItem = (idx: number) => {
+    setExtractedData((prev: any) => {
+      const items = [...(prev.items || [])];
+      items.splice(idx, 1);
       return { ...prev, items };
     });
   };
@@ -197,6 +209,7 @@ const UploadReceiptPage: React.FC = () => {
           <CardContent className="space-y-4">
             {extractedData ? (
               <>
+                {/* scalar fields */}
                 {[
                   { key: "vendor", label: "Vendor" },
                   { key: "transaction_date", label: "Date" },
@@ -213,10 +226,15 @@ const UploadReceiptPage: React.FC = () => {
                   </div>
                 ))}
 
-                {/* items table editable */}
+                {/* items table */}
                 <div>
-                  <Label>Items</Label>
-                  <div className="border rounded-md mt-1 overflow-auto max-h-52">
+                  <div className="flex items-center justify-between mb-1">
+                    <Label>Items</Label>
+                    <Button size="sm" variant="outline" onClick={addItem}>
+                      <Plus className="h-4 w-4 mr-1" /> Add
+                    </Button>
+                  </div>
+                  <div className="border rounded-md overflow-auto max-h-52">
                     {extractedData.items?.length ? (
                       <table className="min-w-full text-sm">
                         <thead className="bg-muted sticky top-0">
@@ -224,38 +242,44 @@ const UploadReceiptPage: React.FC = () => {
                             <th className="px-2 py-1 text-left">Name</th>
                             <th className="px-2 py-1 text-right">Qty</th>
                             <th className="px-2 py-1 text-right">Price</th>
+                            <th className="w-8" />
                           </tr>
                         </thead>
                         <tbody>
                           {extractedData.items.map((it: any, i: number) => (
                             <tr key={i} className="odd:bg-white even:bg-gray-50">
-                              <td className="px-2 py-1">
+                              <td className="px-2 py-1 w-1/2">
                                 <Input
                                   value={it.name || ""}
                                   onChange={(e) => updateItem(i, "name", e.target.value)}
                                 />
                               </td>
-                              <td className="px-2 py-1">
+                              <td className="px-2 py-1 w-20">
                                 <Input
                                   type="number"
-                                  value={it.quantity || 1}
+                                  value={it.quantity || ""}
                                   onChange={(e) => updateItem(i, "quantity", +e.target.value)}
                                 />
                               </td>
-                              <td className="px-2 py-1">
+                              <td className="px-2 py-1 w-28">
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={it.price || 0}
+                                  value={it.price || ""}
                                   onChange={(e) => updateItem(i, "price", +e.target.value)}
                                 />
+                              </td>
+                              <td className="px-1 py-1 text-right">
+                                <Button size="icon" variant="ghost" onClick={() => deleteItem(i)}>
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     ) : (
-                      <p className="p-2 text-muted-foreground">No items detected</p>
+                      <p className="p-2 text-muted-foreground">No items</p>
                     )}
                   </div>
                 </div>
