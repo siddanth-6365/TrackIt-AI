@@ -32,16 +32,16 @@ export function Navbar() {
             <span className="sr-only">Toggle menu</span>
           </Button>
           <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="text-xl font-bold text-emerald-600">ReceiptAI</span>
+            <span className="text-xl font-bold text-emerald-600">TrackIt-AI</span>
           </Link>
         </div>
         <div className="flex items-center gap-4">
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "Profile"}
                   </div>
                 </Button>
               </DropdownMenuTrigger>

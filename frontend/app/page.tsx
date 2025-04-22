@@ -50,6 +50,11 @@ export default function LandingPage() {
               title="Track Expenses"
               description="View detailed breakdowns of your spending by category, vendor, and time period."
             />
+            {/* <FeatureCard
+              icon={<PieChart className="h-10 w-10 text-emerald-500" />}
+              title="Query Your Receipts"
+              description="Ask questions about your receipts and get answers in plain text."
+            /> */}
             <FeatureCard
               icon={<Shield className="h-10 w-10 text-emerald-500" />}
               title="Secure Storage"

@@ -18,27 +18,22 @@ const sidebarItems = [
     icon: Upload,
   },
   {
-    name: "My Receipts",
-    href: "/dashboard/receipts",
-    icon: Receipt,
-  },
-  {
-    name: "Analytics",
-    href: "/dashboard/analytics",
+    name: "Query Receipts",
+    href: "/dashboard/query",
     icon: PieChart,
   },
   {
-    name: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
+    name: "My Receipts",
+    href: "/dashboard/receipts",
+    icon: Receipt,
+  }
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r bg-white h-[calc(100vh-4rem)]">
+    <aside className=" top-0 left-0 md:flex flex-col w-64 border-r bg-white h-[calc(100vh-4rem)]">
       <div className="flex flex-col gap-1 p-4">
         {sidebarItems.map((item) => (
           <Button

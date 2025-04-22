@@ -21,7 +21,7 @@ type User = {
 type AuthCtx = {
   user: User | null
   loading: boolean
-  login:  (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<void>
   signup: (email: string, password: string, name: string) => Promise<void>
   logout: () => void
 }
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const isPublic = publicRoutes.includes(pathname)
 
     if (!user && !isPublic) router.push("/login")
-    if (user && isPublic)   router.push("/dashboard")
+    if (user && isPublic) router.push("/dashboard")
   }, [user, loading, pathname, router])
 
   /* ---------------- API helpers ---------------- */

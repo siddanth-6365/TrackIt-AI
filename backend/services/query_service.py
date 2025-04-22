@@ -1,8 +1,12 @@
 from dotenv import load_dotenv
 import os
 import google.generativeai as genai
+from groq import Groq
 
 load_dotenv()
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY)
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
@@ -49,3 +53,32 @@ def execute_sql_in_supabase(supabase, sql: str):
         # Optionally, log the error here
         raise RuntimeError(f"Supabase RPC error: {e}") from e
     return resp.data or []
+  
+  
+EXPLAIN_PROMPT = """
+You are an AI assistant. Given the SQL query and its returned data rows, provide a concise, human-readable summary of the result.
+
+Rows (JSON array):
+{rows}
+
+Write your summary as a natural language answer to the user's original question.
+"""
+
+def explain_query(rows: list) -> str:
+    # fill prompt
+    prompt = EXPLAIN_PROMPT.format(rows=rows)
+    try:
+        completion = client.chat.completions.create(
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            max_completion_tokens=512,
+            top_p=1,
+            stream=True,
+        )
+        text = ""
+        for chunk in completion:
+            text += chunk.choices[0].delta.content or ""
+        return text.strip()
+    except GroqError as e:
+        raise RuntimeError(f"Groq API error: {e}") from e

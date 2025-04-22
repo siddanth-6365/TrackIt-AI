@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
   )
 }
 
-function StatCard({ title, value, description, icon, trend, trendDirection }) {
+function StatCard({ title, value, description, icon, trend, trendDirection }: { title: string; value: string; description: string; icon: React.ReactNode; trend?: string; trendDirection?: "up" | "down" | "neutral" }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -143,9 +143,8 @@ function StatCard({ title, value, description, icon, trend, trendDirection }) {
         <p className="text-xs text-muted-foreground">{description}</p>
         {trend && (
           <div
-            className={`mt-2 flex items-center text-xs ${
-              trendDirection === "up" ? "text-green-600" : trendDirection === "down" ? "text-red-600" : "text-gray-500"
-            }`}
+            className={`mt-2 flex items-center text-xs ${trendDirection === "up" ? "text-green-600" : trendDirection === "down" ? "text-red-600" : "text-gray-500"
+              }`}
           >
             {trend}
           </div>

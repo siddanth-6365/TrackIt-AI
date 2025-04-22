@@ -17,16 +17,13 @@ class QueryRequest(BaseModel):
 class QueryResponse(BaseModel):
     sql: str
     result: List[Dict[str, Any]]
+    answer: str          # <<< new field for the human‑readable summary
 
-@router.post("/", response_model=QueryResponse)
+@router.post("/ask", response_model=QueryResponse)
 async def run_nl_query(req: QueryRequest):
-    """
-    1) Generate SQL from natural language via Gemini, scoped to user_id.
-    2) Execute that SQL via the Supabase run_sql RPC.
-    """
-    # 1. Generate SQL
+    # 1. NL ➔ SQL
     try:
-        sql: str = await asyncio.get_running_loop().run_in_executor(
+        sql = await asyncio.get_running_loop().run_in_executor(
             None,
             query_service.get_gemini_response,
             req.q,
@@ -34,16 +31,27 @@ async def run_nl_query(req: QueryRequest):
         )
     except Exception as e:
         raise HTTPException(500, f"Error generating SQL: {e}")
-    print("1. SQL generated :", sql)
-    # cleaning this sql by removing leading/trailing whitespace and trailing semicolon
+
     clean_sql = sql.strip().rstrip(";")
 
-    # 2. Execute SQL in Postgres via RPC
+    # 2. Execute SQL
     try:
-        resp_data = query_service.execute_sql_in_supabase(supabase, clean_sql)
+        rows = query_service.execute_sql_in_supabase(supabase, clean_sql)
     except Exception as e:
-        print("Database error :", str(e))
-        raise HTTPException(500, f"Database error: {str(e)}") from e
-    print("2. Database query executed")
+        raise HTTPException(500, f"Database error: {e}") from e
 
-    return {"sql": clean_sql, "result": resp_data}
+    # 3. Explain result via Groq AI
+    try:
+        answer = await asyncio.get_running_loop().run_in_executor(
+            None,
+            query_service.explain_query,
+            rows
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Error explaining result: {e}") from e
+
+    return {
+        "sql": clean_sql,
+        "result": rows,
+        "answer": answer,   # now included in the response
+    }

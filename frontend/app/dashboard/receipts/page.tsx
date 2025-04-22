@@ -43,6 +43,7 @@ import {
   Upload,
   Eye,
 } from "lucide-react";
+import { apiURL } from "@/lib/api";
 
 // ---------------- types ----------------
 interface Item { name: string; quantity: number | null; price: number | null }
@@ -73,7 +74,7 @@ export default function ReceiptsPage() {
   const fetchReceipts = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/receipts/user/${user!.id}`);
+      const res = await fetch(`${apiURL}/receipts/user/${user!.id}`);
       if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
       setReceipts(data.receipts);

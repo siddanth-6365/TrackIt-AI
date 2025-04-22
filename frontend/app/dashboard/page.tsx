@@ -31,10 +31,10 @@ export default function Dashboard() {
           href="/dashboard/receipts"
         />
         <DashboardCard
-          title="Analytics"
-          description="Get insights into your spending patterns"
+          title="Query Receipts"
+          description="Ask questions about your receipts and get answers in plain text"
           icon={<PieChart className="h-5 w-5" />}
-          href="/dashboard/analytics"
+          href="/dashboard/query"
         />
       </div>
 
@@ -80,7 +80,7 @@ export default function Dashboard() {
   )
 }
 
-function DashboardCard({ title, description, icon, href }) {
+function DashboardCard({ title, description, icon, href }: { title: string; description: string; icon: React.ReactNode; href: string }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -101,7 +101,7 @@ function DashboardCard({ title, description, icon, href }) {
   )
 }
 
-function EmptyState({ title, description, action }) {
+function EmptyState({ title, description, action }: { title: string; description: string; action: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center text-center p-6 border border-dashed rounded-lg">
       <h3 className="text-lg font-medium">{title}</h3>

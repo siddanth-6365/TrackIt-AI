@@ -15,9 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, ImageIcon, Check, X, Receipt, Plus,Trash2 } from "lucide-react";
-
-const apiURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { Loader2, Upload, ImageIcon, Check, X, Receipt, Plus, Trash2 } from "lucide-react";
+import { apiURL } from "@/lib/api";
 
 const UploadReceiptPage: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -102,7 +101,6 @@ const UploadReceiptPage: React.FC = () => {
   };
 
   /* ------ save ------ */
-  // ───────────────── save as JSON ─────────────────
   const saveReceipt = async () => {
     if (!extractedData || !user) return;
 
@@ -114,7 +112,7 @@ const UploadReceiptPage: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: user.id,      // keep snake‑case to match backend model
-          payload: extractedData // full editable object
+          payload: extractedData
         }),
       });
 
