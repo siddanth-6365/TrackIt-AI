@@ -16,9 +16,10 @@ A side‑project that turns incoming receipt images (web upload or WhatsApp) int
 | **Frontend** | Next.js (React 18, App Router) + Tailwind / shadcn                  |
 
 ---
-<img width="1710" alt="Screenshot 2025-04-22 at 12 03 36 PM" src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" />
-<img width="1710" alt="Screenshot 2025-04-22 at 12 00 26 PM" src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" />
+### Demo Images 
 <img width="1710" alt="Screenshot 2025-04-22 at 12 00 10 PM" src="https://github.com/user-attachments/assets/c112ecbf-d3b6-47d5-a9d5-e9ac20edf0b7" />
+<img width="1710" alt="Screenshot 2025-04-22 at 12 00 26 PM" src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" />
+<img width="1710" alt="Screenshot 2025-04-22 at 12 03 36 PM" src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" />
 ---
 
 ## API Routes (current MVP)
