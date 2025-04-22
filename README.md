@@ -1,6 +1,6 @@
 # TrackIt‑AI
 
-A learning‑focused side‑project that turns incoming receipt images (web upload or WhatsApp) into structured expense data, stores it in Supabase Postgres, and lets users query their spending with natural language.
+A side‑project that turns incoming receipt images (web upload or WhatsApp) into structured expense data, stores it in Supabase Postgres, and lets users query their spending with natural language.
 
 ---
 
@@ -16,6 +16,32 @@ A learning‑focused side‑project that turns incoming receipt images (web uplo
 | **Frontend** | Next.js (React 18, App Router) + Tailwind / shadcn                  |
 
 ---
+<img width="1710" alt="Screenshot 2025-04-22 at 12 03 36 PM" src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" />
+<img width="1710" alt="Screenshot 2025-04-22 at 12 00 26 PM" src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" />
+<img width="1710" alt="Screenshot 2025-04-22 at 12 00 10 PM" src="https://github.com/user-attachments/assets/c112ecbf-d3b6-47d5-a9d5-e9ac20edf0b7" />
+---
+
+## API Routes (current MVP)
+
+| Method | Path                          | Purpose                                      |
+|--------|-------------------------------|----------------------------------------------|
+| `POST` | `/users/signup`               | create user `{email,password,name}`          |
+| `POST` | `/users/login`                | returns `{id,email,name}`                    |
+| `POST` | `/receipts/upload` _(multipart)_ | upload receipt `file` + `user_id`        |
+| `GET`  | `/receipts/user/{user_id}`    | list receipts by user                        |
+| `POST` | `/receipts/extract`           | extract data without saving                  |
+| `POST` | `/receipts/save`              | save structured receipt JSON                 |
+| `POST` | `/query`                      | NL ➜ SQL ➜ Supabase (with `user_id`)         |
+
+---
+
+## Project Road‑Map
+
+1. ✅ Auth + receipt ingestion + DB save  
+2. ✅ List receipts per user  
+3. ✅ NL query ➜ Gemini text‑to‑SQL  
+4. ⏳ WhatsApp gateway integration  
+5. ⏳ Budget alerts & email/WA notifications
 
 ## Local Setup (dev)
 
@@ -49,27 +75,3 @@ PW_SALT=some_random_string
 # frontend/.env.local
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
-
----
-
-## API Routes (current MVP)
-
-| Method | Path                          | Purpose                                      |
-|--------|-------------------------------|----------------------------------------------|
-| `POST` | `/users/signup`               | create user `{email,password,name}`          |
-| `POST` | `/users/login`                | returns `{id,email,name}`                    |
-| `POST` | `/receipts/upload` _(multipart)_ | upload receipt `file` + `user_id`        |
-| `GET`  | `/receipts/user/{user_id}`    | list receipts by user                        |
-| `POST` | `/receipts/extract`           | extract data without saving                  |
-| `POST` | `/receipts/save`              | save structured receipt JSON                 |
-| `POST` | `/query`                      | NL ➜ SQL ➜ Supabase (with `user_id`)         |
-
----
-
-## Project Road‑Map
-
-1. ✅ Auth + receipt ingestion + DB save  
-2. ✅ List receipts per user  
-3. ✅ NL query ➜ Gemini text‑to‑SQL  
-4. ⏳ WhatsApp gateway integration  
-5. ⏳ Budget alerts & email/WA notifications
