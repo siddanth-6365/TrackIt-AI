@@ -1,6 +1,6 @@
 # TrackIt‑AI
 
-A side‑project that turns incoming receipt images (web upload or WhatsApp) into structured expense data, stores it in Supabase Postgres, and lets users query their spending with natural language.
+this project that turns incoming receipt images into structured expense data, stores it in SQL database, and lets users ask about their spendings with natural language and get the insights.
 
 ---
 
@@ -12,7 +12,7 @@ A side‑project that turns incoming receipt images (web upload or WhatsApp) int
 | **LLM (receipt parsing & categorization)** | Groq‑hosted **`meta‑llama/llama‑4‑scout‑17b‑16e‑instruct`** |
 | **Text‑to‑SQL** | Google **`gemini‑1.5‑pro‑latest`** with user_id filtering         |
 | **Backend API** | Python + FastAPI + asyncio                                       |
-| **Database** | Supabase Postgres (REST interface via supabase‑py)                  |
+| **Database** | Supabase PostgresSQL                |
 | **Frontend** | Next.js (React 18, App Router) + Tailwind / shadcn                  |
 
 ---
@@ -22,7 +22,7 @@ A side‑project that turns incoming receipt images (web upload or WhatsApp) int
 <img width="1710" alt="Screenshot 2025-04-22 at 12 03 36 PM" src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" />
 ---
 
-## API Routes (current MVP)
+## API Routes
 
 | Method | Path                          | Purpose                                      |
 |--------|-------------------------------|----------------------------------------------|
