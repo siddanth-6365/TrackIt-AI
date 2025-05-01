@@ -1,6 +1,6 @@
 # TrackIt‑AI
 
-this project that turns incoming receipt images into structured expense data, stores it in SQL database, and lets users ask about their spendings with natural language and get the insights.
+This project turns incoming receipt images into structured expense data, stores it in SQL database, and lets users ask about their spendings with natural language and get the insights.
 
 ---
 
@@ -8,12 +8,12 @@ this project that turns incoming receipt images into structured expense data, st
 
 | Layer        | Tech                                                                 |
 |--------------|----------------------------------------------------------------------|
-| **OCR**      | Tesseract                                                            |
 | **LLM (receipt parsing & categorization)** | Groq‑hosted **`meta‑llama/llama‑4‑scout‑17b‑16e‑instruct`** |
-| **Text‑to‑SQL** | Google **`gemini‑1.5‑pro‑latest`** with user_id filtering         |
+| **Text‑to‑SQL** | Google **`gemini‑1.5‑pro‑latest`**         |
+| **OCR**      | Tesseract                                                            |
 | **Backend API** | Python + FastAPI + asyncio                                       |
 | **Database** | Supabase PostgresSQL                |
-| **Frontend** | Next.js (React 18, App Router) + Tailwind / shadcn                  |
+| **Frontend** | Next.js + Tailwind / shadcn                  |
 
 ---
 ### Demo Images 
@@ -57,8 +57,8 @@ uvicorn backend.main:app --reload             # API → http://localhost:8000
 
 # ---------- frontend ----------
 cd frontend
-pnpm install
-pnpm dev                                       # Web → http://localhost:3000
+npm install
+npm dev                                       # Web → http://localhost:3000
 ```
 
 Environment variables you’ll need:
@@ -69,7 +69,6 @@ GROQ_API_KEY=your_groq_key
 GEMINI_API_KEY=your_gemini_key
 SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_KEY=service_role_or_anon_key
-PW_SALT=some_random_string
 
 # frontend/.env.local
 NEXT_PUBLIC_API_URL=http://localhost:8000
