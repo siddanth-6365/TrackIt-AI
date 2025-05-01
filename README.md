@@ -53,13 +53,11 @@ cd trackit-ai
 # ---------- backend ----------
 python -m venv venv && source venv/bin/activate
 pip install -r backend/requirements.txt
-cp backend/.env.example backend/.env          # add keys
 uvicorn backend.main:app --reload             # API → http://localhost:8000
 
 # ---------- frontend ----------
 cd frontend
 pnpm install
-cp .env.local.example .env.local              # NEXT_PUBLIC_API_URL etc.
 pnpm dev                                       # Web → http://localhost:3000
 ```
 
