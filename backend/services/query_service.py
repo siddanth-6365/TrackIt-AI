@@ -21,14 +21,15 @@ def validate_question(question: str) -> bool:
     prompt = VALIDATE_PROMPT.format(question=question)
     try:
         resp = groq_client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            model="llama-3.1-8b-instant",
             messages=[{"role": "user", "content": prompt}],
             temperature=0,
             max_completion_tokens=10,
             top_p=1,
-            stream=True
+            stream=False
         )
-        text = "".join(chunk.choices[0].delta.content or "" for chunk in resp)
+        text = resp.choices[0].message.content
+        print("validate question response:", text)
         return text.strip().upper().startswith("YES")
     except GroqError:
         return False
@@ -93,6 +94,7 @@ def explain_query(sql: str, rows: list, question: str) -> str:
             return resp.choices[0].message.content.strip()
         except GroqError as e:
             # only retry on 503
+            print("llm error so retrying", e)
             if "503" in str(e):
                 time.sleep(2 ** attempt)
                 continue
@@ -101,6 +103,7 @@ def explain_query(sql: str, rows: list, question: str) -> str:
 
     # 2) Fallback: simple template summary
     if rows:
+        print("llm error so using fallback")
         return json.dumps(rows, indent=2)
     else:
         return "No records found for your query."

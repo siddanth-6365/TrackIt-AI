@@ -9,9 +9,9 @@ This project turns incoming receipt images into structured expense data, stores 
 | Layer        | Tech                                                                 |
 |--------------|----------------------------------------------------------------------|
 | **LLM (receipt parsing & categorization)** | Groq‑hosted **`meta‑llama/llama‑4‑scout‑17b‑16e‑instruct`** |
-| **Text‑to‑SQL** | Google **`gemini‑1.5‑pro‑latest`**         |
-| **OCR**      | Tesseract                                                            |
-| **Backend API** | Python + FastAPI + asyncio                                       |
+| **Text‑to‑SQL** | sqlcoder-7b-2    |
+| **OCR**      | Tesseract                                                            |
+| **Backend API** | Python + FastAPI + asyncio                                       |
 | **Database** | Supabase PostgresSQL                |
 | **Frontend** | Next.js + Tailwind / shadcn                  |
 
@@ -40,8 +40,8 @@ This project turns incoming receipt images into structured expense data, stores 
 
 1. ✅ Auth + receipt ingestion + DB save  
 2. ✅ List receipts per user  
-3. ✅ NL query ➜ Gemini text‑to‑SQL  
-4. ⏳ WhatsApp gateway integration  
+3. ✅ NL query ➜ text‑to‑SQL  
+4. ✅ Telegram bot integration  
 5. ⏳ Budget alerts & email/WA notifications
 
 ## Local Setup (dev)
@@ -61,15 +61,24 @@ npm install
 npm dev                                       # Web → http://localhost:3000
 ```
 
+# ---------- telegram-bot ----------
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python main.py
+
+
 Environment variables you’ll need:
 
 ```
 # backend/.env
 GROQ_API_KEY=your_groq_key
-GEMINI_API_KEY=your_gemini_key
 SUPABASE_URL=https://xxxx.supabase.co
 SUPABASE_KEY=service_role_or_anon_key
 
 # frontend/.env.local
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
+
+# telegram-bot/.env
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+

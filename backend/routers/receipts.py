@@ -32,6 +32,17 @@ class SaveRequest(BaseModel):
     user_id: str
     payload: ExtractedReceipt
 
+class TelegramReceiptOut(BaseModel):
+    id: int
+    user_id: str
+    vendor: str | None
+    transaction_date: str | None
+    total_amount: float | None
+    expense_category: str | None
+    items: list = Field(default_factory=list)
+
+    class Config:
+        orm_mode = True
 
 # /receipts/extract
 @router.post("/extract", response_model=ExtractedReceipt)
@@ -61,6 +72,46 @@ async def extract_receipt(user_id: str = Form(...), file: UploadFile = File(...)
     parsed["expense_category"] = category
     return parsed
 
+@router.post("/telegram_upload", response_model=TelegramReceiptOut)
+async def telegram_upload_receipt(
+    user_id: str = Form(...),
+    file: UploadFile = File(...),
+):
+    """
+    Telegram-style: OCR + LLM extract + immediate save + return what was saved.
+    """
+    # 1) read bytes
+    try:
+        image_bytes = await file.read()
+    except Exception:
+        raise HTTPException(400, "Cannot read uploaded image")
+
+    # 2) OCR in threadpool
+    loop = asyncio.get_running_loop()
+    raw_text = await loop.run_in_executor(executor, ocr_service.do_ocr, image_bytes)
+    if not raw_text:
+        raise HTTPException(400, "No text could be extracted from image")
+
+    # 3) parallel LLM calls
+    details_task  = asyncio.create_task(llm_service.call_extract_details(raw_text))
+    category_task = asyncio.create_task(llm_service.call_expense_category(raw_text))
+
+    try:
+        details, category = await asyncio.gather(details_task, category_task)
+        print("details", details)
+        print("category", category)
+    except Exception as e:
+        raise HTTPException(500, f"LLM extraction error: {e}")
+
+    # 4) combine & save
+    details["expense_category"] = category
+    try:
+        saved = await receipt_service.save_receipt(user_id, details, category)
+    except Exception as e:
+        raise HTTPException(500, f"Database save error: {e}")
+
+    # 5) return the saved ReceiptOut
+    return TelegramReceiptOut(**saved)
 
 @router.post("/save", response_model=ReceiptOut)
 async def save_receipt(req: SaveRequest):

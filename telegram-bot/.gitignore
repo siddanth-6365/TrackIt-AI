@@ -1,0 +1,5 @@
+.env
+received_images
+__pycache__
+*.pyc
+venv
