@@ -1,47 +1,67 @@
 from dotenv import load_dotenv
 import os
+import json
 import google.generativeai as genai
-from groq import Groq
+from groq import Groq, GroqError
+from prompts import VALIDATE_PROMPT, Gemini_SQL_PROMPT, EXPLAIN_PROMPT, SQLCODER_PROMPT_TEMPLATE
+import requests
+import time
 
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=GROQ_API_KEY)
-
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Build a prompt template with user_id placeholder
-PROMPT_TEMPLATE = """
-You are an expert in converting English questions to SQL queries!
-The SQL database is named receipts, with columns:
-  id, user_id, vendor, transaction_date, total_amount, expense_category, items.
+# Cloudflare SQLCoder endpoint
+AUTH_TOKEN = os.getenv("CLOUDFLARE_AUTH_TOKEN")
+CLOUDFLARE_ACCOUNT_ID = os.getenv("CLOUDFLARE_ACCOUNT_ID")
+SQLCODER_URL = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/defog/sqlcoder-7b-2"
 
-Always include a WHERE clause filtering by user_id = '{user_id}'.
+def validate_question(question: str) -> bool:
+    prompt = VALIDATE_PROMPT.format(question=question)
+    try:
+        resp = groq_client.chat.completions.create(
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+            max_completion_tokens=10,
+            top_p=1,
+            stream=True
+        )
+        text = "".join(chunk.choices[0].delta.content or "" for chunk in resp)
+        return text.strip().upper().startswith("YES")
+    except GroqError:
+        return False
 
-Examples:
-Q: How many receipts are there?
-A: SELECT COUNT(*) FROM receipts WHERE user_id = '{user_id}';
+# using the gemini-1.5-pro-latest
 
-Q: Show all receipts from Amazon.
-A: SELECT * FROM receipts
-   WHERE user_id = '{user_id}'
-     AND vendor = 'Amazon';
+# def get_sql_from_question(question: str, user_id: str) -> str:
+#     prompt = Gemini_SQL_PROMPT.format(question=question, user_id=user_id)
+#     model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
+#     resp = model.generate_content([prompt])
+#     return resp.text.strip()
 
-Q: What is the total amount spent on Food?
-A: SELECT SUM(total_amount) FROM receipts
-   WHERE user_id = '{user_id}'
-     AND expense_category = 'Food';
+# using the sql-coder-7b
+def get_sql_from_question(question: str, user_id: str) -> str:
+    prompt = SQLCODER_PROMPT_TEMPLATE.format(question=question, user_id=user_id)
+    headers = {"Authorization": f"Bearer {AUTH_TOKEN}", "Content-Type": "application/json"}
+    payload = {"messages": [
+        {"role": "system", "content": "You are an expert SQL generator."},
+        {"role": "user", "content": prompt}
+    ]}
+    resp = requests.post(SQLCODER_URL, headers=headers, json=payload)
+    data = resp.json()
+    # Check for Cloudflare errors
+    if not data.get("success", False):
+        raise RuntimeError(f"SQLCoder returned errors: {data.get('errors', data)}")
+    
+    sql = data["result"]["response"]
+    
+    sql = sql.replace("```", "").strip().rstrip(";")
+    return sql
 
-Return ONLY the SQL—no markdown, no extra text.
-"""
 
-def get_gemini_response(question: str, user_id: str) -> str:
-    # Fill in the user_id in the prompt
-    prompt = PROMPT_TEMPLATE.format(user_id=user_id)
-    model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
-    response = model.generate_content([prompt, question])
-    return response.text.strip()
-
+# 3) Execute SQL via Supabase RPC
 def execute_sql_in_supabase(supabase, sql: str):
     """
     Executes the given SQL statement using Supabase's run_sql RPC.
@@ -50,35 +70,39 @@ def execute_sql_in_supabase(supabase, sql: str):
     try:
         resp = supabase.rpc("run_sql", {"query_text": sql}).execute()
     except Exception as e:
-        # Optionally, log the error here
         raise RuntimeError(f"Supabase RPC error: {e}") from e
     return resp.data or []
-  
-  
-EXPLAIN_PROMPT = """
-You are an AI assistant. Given the SQL query and its returned data rows, provide a concise, human-readable summary of the result.
 
-Rows (JSON array):
-{rows}
+def explain_query(sql: str, rows: list, question: str) -> str:
+    prompt = EXPLAIN_PROMPT.format(
+        question=question,
+        sql=sql,
+        rows=json.dumps(rows)
+    )
+    # 1) Try primary Groq LLM with retries
+    for attempt in range(3):
+        try:
+            resp = groq_client.chat.completions.create(
+                model="meta-llama/llama-4-maverick-17b-128e-instruct",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+                max_completion_tokens=256,
+                top_p=1,
+                stream=False
+            )
+            return resp.choices[0].message.content.strip()
+        except GroqError as e:
+            # only retry on 503
+            if "503" in str(e):
+                time.sleep(2 ** attempt)
+                continue
+            # other errors bubble up
+            raise
 
-Write your summary as a natural language answer to the user's original question.
-"""
-
-def explain_query(rows: list) -> str:
-    # fill prompt
-    prompt = EXPLAIN_PROMPT.format(rows=rows)
-    try:
-        completion = client.chat.completions.create(
-            model="meta-llama/llama-4-scout-17b-16e-instruct",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
-            max_completion_tokens=512,
-            top_p=1,
-            stream=True,
-        )
-        text = ""
-        for chunk in completion:
-            text += chunk.choices[0].delta.content or ""
-        return text.strip()
-    except GroqError as e:
-        raise RuntimeError(f"Groq API error: {e}") from e
+    # 2) Fallback: simple template summary
+    if rows:
+        return json.dumps(rows, indent=2)
+    else:
+        return "No records found for your query."
+    
+    

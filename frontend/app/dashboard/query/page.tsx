@@ -48,9 +48,10 @@ export default function DashboardQueryPage() {
           // show only the human‑readable answer
           setMessages((m) => [...m, { from: "bot", text: answer }]);
         } catch (err: any) {
+            console.error(err);
           setMessages((m) => [
             ...m,
-            { from: "bot", text: `Error: ${err.message}` },
+            { from: "bot", text: "some error occurred, try again" },
           ]);
         } finally {
           setLoading(false);
