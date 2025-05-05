@@ -8,7 +8,7 @@ This project turns receipt images into structured expense data, stores it in Sup
 
 | Layer                               | Tech                                                                                         |
 |-------------------------------------|----------------------------------------------------------------------------------------------|
-| **LLM (receipt parsing & categorization)** | Groq‑hosted **`meta‑llama/llama‑4` models**                             |
+| **LLM (receipt parsing & categorization)** |  **`meta‑llama/llama‑4` models API**                             |
 | **Text‑to‑SQL**                     | **`sqlcoder-7b-2`** via Cloudflare AI (HuggingFace: defog/sqlcoder-7b-2)                      |
 | **OCR**                             | Tesseract                                                                           |
 | **Backend API**                     | Python + FastAPI + asyncio                                                                    |
@@ -22,7 +22,7 @@ This project turns receipt images into structured expense data, stores it in Sup
 
 <img src="https://github.com/user-attachments/assets/c112ecbf-d3b6-47d5-a9d5-e9ac20edf0b7" alt="Screenshot 1" width="500" />
 <img src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" alt="Screenshot 2" width="500" />
-<img src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" alt="Screenshot 3" width="500" />
+<img width="500" alt="Screenshot 2025-05-05 at 12 43 07 PM" src="https://github.com/user-attachments/assets/9ac2c56e-d2e6-47fc-a5ec-0a8498b43841" />
 <img width="500" alt="Screenshot 2025-05-05 at 12 23 36 PM" src="https://github.com/user-attachments/assets/1d45ffa9-f7e3-4b1c-ab76-e94dd93ac678" />
 
 ---

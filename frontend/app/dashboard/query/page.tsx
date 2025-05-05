@@ -51,7 +51,7 @@ export default function DashboardQueryPage() {
             console.error(err);
           setMessages((m) => [
             ...m,
-            { from: "bot", text: "some error occurred, try again" },
+            { from: "bot", text: err.detail || "some error occurred, try again" },
           ]);
         } finally {
           setLoading(false);
