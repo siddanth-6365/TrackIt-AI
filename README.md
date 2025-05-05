@@ -20,9 +20,10 @@ This project turns receipt images into structured expense data, stores it in Sup
 
 ### Demo Images
 
-<img src="https://github.com/user-attachments/assets/c112ecbf-d3b6-47d5-a9d5-e9ac20edf0b7" alt="Screenshot 1" width="600" />
-<img src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" alt="Screenshot 2" width="600" />
-<img src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" alt="Screenshot 3" width="600" />
+<img src="https://github.com/user-attachments/assets/c112ecbf-d3b6-47d5-a9d5-e9ac20edf0b7" alt="Screenshot 1" width="500" />
+<img src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" alt="Screenshot 2" width="500" />
+<img src="https://github.com/user-attachments/assets/bb757277-cd51-4702-8dbf-f647e7d8ee94" alt="Screenshot 3" width="500" />
+<img width="500" alt="Screenshot 2025-05-05 at 12 23 36 PM" src="https://github.com/user-attachments/assets/1d45ffa9-f7e3-4b1c-ab76-e94dd93ac678" />
 
 ---
 

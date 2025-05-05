@@ -48,7 +48,7 @@ async def run_nl_query(req: QueryRequest):
     try:
         answer = await asyncio.get_running_loop().run_in_executor(
             None,
-            query_service.explain_query,
+            query_service.explain_query_2,
             clean_sql,
             rows,
             req.q

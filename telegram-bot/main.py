@@ -8,7 +8,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from telegram import Bot, Update
+from telegram import Update
 from telegram.ext import ContextTypes
 from dotenv import load_dotenv
 
@@ -20,7 +20,6 @@ API_URL = "http://127.0.0.1:8000"
 # For demo purposes; map Telegram users to this test user_id
 TEST_USER_ID = "8de7b467-2b32-4dcb-bace-98672bbef103"
 
-# Ensure image directory exists
 os.makedirs("received_images", exist_ok=True)
 
 async def start(update, context):
@@ -58,24 +57,17 @@ async def ask_expense_query(update, context, question):
 
 async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔄 Processing your receipt...")
-
-    # ① Choose highest-res photo
+    
     photo = update.message.photo[-1]  
-
-    # ② Fetch file metadata
     file_obj = await photo.get_file()  
-
-    # === Option A: download_to_memory ===
     bio = BytesIO()
-    await file_obj.download_to_memory(out=bio)  # requires 'out' param
+    
+    await file_obj.download_to_memory(out=bio)
     bio.seek(0)
-
-    # === Option B: download_as_bytearray ===
-    # data = await file_obj.download_as_bytearray()
-    # bio = BytesIO(data)
-    # bio.seek(0)
-
-    # ③ Send to backend
+    
+    data = await file_obj.download_as_bytearray()
+    bio = BytesIO(data)
+    
     files = {"file": ("receipt.jpg", bio, "image/jpeg")}
     data  = {"user_id": TEST_USER_ID}
     try:

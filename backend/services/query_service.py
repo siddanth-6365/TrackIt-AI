@@ -109,3 +109,32 @@ def explain_query(sql: str, rows: list, question: str) -> str:
         return "No records found for your query."
     
     
+def explain_query_2(sql: str, rows: list, question: str) -> str:
+    prompt = EXPLAIN_PROMPT.format(
+        question=question,
+        sql=sql,
+        rows=json.dumps(rows)
+    )
+    
+    response = requests.post(
+        f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/meta/llama-4-scout-17b-16e-instruct",
+        headers={"Authorization": f"Bearer {AUTH_TOKEN}"},
+        json={
+            "messages": [
+                {"role": "system", "content": "You are a friendly assistant"},
+                {"role": "user", "content": prompt}
+            ]
+        }
+    )
+    result = response.json()
+    print("cloudflare explain query response", result)
+    
+    if not result.get("success", False):
+        if rows:
+            print("llm error so using fallback")
+            return json.dumps(rows, indent=2)
+        else:
+            return "No records found for your query."
+        
+    return result["result"]["response"]
+    
