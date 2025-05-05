@@ -34,14 +34,6 @@ def validate_question(question: str) -> bool:
     except GroqError:
         return False
 
-# using the gemini-1.5-pro-latest
-
-# def get_sql_from_question(question: str, user_id: str) -> str:
-#     prompt = Gemini_SQL_PROMPT.format(question=question, user_id=user_id)
-#     model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
-#     resp = model.generate_content([prompt])
-#     return resp.text.strip()
-
 # using the sql-coder-7b
 def get_sql_from_question(question: str, user_id: str) -> str:
     prompt = SQLCODER_PROMPT_TEMPLATE.format(question=question, user_id=user_id)
@@ -138,3 +130,12 @@ def explain_query_2(sql: str, rows: list, question: str) -> str:
         
     return result["result"]["response"]
     
+    
+    
+# using the gemini-1.5-pro-latest
+
+# def get_sql_from_question(question: str, user_id: str) -> str:
+#     prompt = Gemini_SQL_PROMPT.format(question=question, user_id=user_id)
+#     model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
+#     resp = model.generate_content([prompt])
+#     return resp.text.strip()

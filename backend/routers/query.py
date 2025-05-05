@@ -21,6 +21,11 @@ class QueryResponse(BaseModel):
 
 @router.post("/ask", response_model=QueryResponse)
 async def run_nl_query(req: QueryRequest):
+    
+    # 1. Validate question
+    if not query_service.validate_question(req.q):
+        raise HTTPException(400, "Invalid question. Please try with another question related to expenses.")    
+    
     # 1. NL ➔ SQL
     try:
         sql = await asyncio.get_running_loop().run_in_executor(
