@@ -133,11 +133,11 @@ const UploadReceiptPage: React.FC = () => {
 
 
   return (
-    <div className="space-y-6">
 
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* -------- Upload Card ------- */}
+    <div className="max-w-2xl mx-auto">
+      {!extractedData ? (
+
         <Card>
           <CardHeader className="flex flex-row justify-between">
             <div>
@@ -204,7 +204,7 @@ const UploadReceiptPage: React.FC = () => {
           </CardFooter>
         </Card>
 
-        {/* -------- Extracted Data Card ------- */}
+      ) : (
         <Card>
           <CardHeader>
             <CardTitle>Review & Edit</CardTitle>
@@ -213,11 +213,17 @@ const UploadReceiptPage: React.FC = () => {
           <CardContent className="space-y-4">
             {extractedData ? (
               <>
-                {/* scalar fields */}
+                {/* ── top‐level fields ── */}
                 {[
-                  { key: "vendor", label: "Vendor" },
+                  { key: "merchant_name", label: "Merchant" },
+                  { key: "merchant_address", label: "Address" },
+                  { key: "merchant_phone", label: "Phone" },
+                  { key: "merchant_email", label: "Email" },
                   { key: "transaction_date", label: "Date" },
+                  { key: "subtotal_amount", label: "Subtotal" },
+                  { key: "tax_amount", label: "Tax" },
                   { key: "total_amount", label: "Total" },
+                  { key: "payment_method", label: "Payment Method" },
                   { key: "expense_category", label: "Category" },
                 ].map(({ key, label }) => (
                   <div key={key}>
@@ -230,7 +236,7 @@ const UploadReceiptPage: React.FC = () => {
                   </div>
                 ))}
 
-                {/* items table */}
+                {/* ── items ── */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <Label>Items</Label>
@@ -243,25 +249,25 @@ const UploadReceiptPage: React.FC = () => {
                       <table className="min-w-full text-sm">
                         <thead className="bg-muted sticky top-0">
                           <tr>
-                            <th className="px-2 py-1 text-left">Name</th>
+                            <th className="px-2 py-1 text-left">Description</th>
                             <th className="px-2 py-1 text-right">Qty</th>
-                            <th className="px-2 py-1 text-right">Price</th>
+                            <th className="px-2 py-1 text-right">Unit Price</th>
                             <th className="w-8" />
                           </tr>
                         </thead>
                         <tbody>
                           {extractedData.items.map((it: any, i: number) => (
                             <tr key={i} className="odd:bg-white even:bg-gray-50">
-                              <td className="px-2 py-1 w-1/2">
+                              <td className="px-2 py-1">
                                 <Input
-                                  value={it.name || ""}
-                                  onChange={(e) => updateItem(i, "name", e.target.value)}
+                                  value={it.description ?? ""}
+                                  onChange={(e) => updateItem(i, "description", e.target.value)}
                                 />
                               </td>
                               <td className="px-2 py-1 w-20">
                                 <Input
                                   type="number"
-                                  value={it.quantity || ""}
+                                  value={it.quantity ?? ""}
                                   onChange={(e) => updateItem(i, "quantity", +e.target.value)}
                                 />
                               </td>
@@ -269,8 +275,8 @@ const UploadReceiptPage: React.FC = () => {
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={it.price || ""}
-                                  onChange={(e) => updateItem(i, "price", +e.target.value)}
+                                  value={it.unit_price ?? ""}
+                                  onChange={(e) => updateItem(i, "unit_price", +e.target.value)}
                                 />
                               </td>
                               <td className="px-1 py-1 text-right">
@@ -301,16 +307,25 @@ const UploadReceiptPage: React.FC = () => {
                 <Button variant="outline" onClick={resetForm}>
                   <X className="mr-2 h-4 w-4" /> Reset
                 </Button>
-                <Button onClick={saveReceipt} disabled={isProcessing} className="bg-emerald-600 hover:bg-emerald-700">
-                  {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+                <Button
+                  onClick={saveReceipt}
+                  disabled={isProcessing}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {isProcessing
+                    ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    : <Check className="mr-2 h-4 w-4" />
+                  }
                   Save Receipt
                 </Button>
               </div>
             )}
           </CardFooter>
         </Card>
-      </div>
+      )
+      }
     </div>
+
   );
 };
 

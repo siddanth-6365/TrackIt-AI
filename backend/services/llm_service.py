@@ -1,70 +1,102 @@
-# groq_calls.py
-import json
-import asyncio
+import json, asyncio
+from unicodedata import category
 from groq import Groq
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+
+receipt_schema = {
+    "name": "receipt_details",        # ← a unique name for your schema
+    "schema": {
+        "type": "object",
+        "properties": {
+            "merchant_name":     {"type": "string", "nullable": True},
+            "merchant_address":  {"type": "string", "nullable": True},
+            "merchant_phone":    {"type": "string", "nullable": True},
+            "merchant_email":    {"type": "string", "nullable": True},
+            "transaction_date":  {"type": "string", "format": "date", "nullable": True},
+            "subtotal_amount":   {"type": "number", "nullable": True},
+            "tax_amount":        {"type": "number", "nullable": True},
+            "total_amount":      {"type": "number", "nullable": True},
+            "payment_method":    {"type": "string", "nullable": True},
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "description": {"type": "string"},
+                        "unit_price":  {"type": "number", "nullable": True},
+                        "quantity":    {"type": "number", "nullable": True}
+                    }
+                }
+            }
+        },
+        "required": []  # you can list required keys if you want
+    }
+}
+
+category_schema = {
+    "name": "expense_category",
+    "schema": {
+        "type": "object",
+        "properties": {
+            "expense_category": {"type": "string"}
+        },
+        "required": ["expense_category"]
+    }
+}
 
 def clean_response(text: str) -> str:
-    """
-    Remove markdown code block markers (e.g., "```json" wrappers) from the API output.
-    """
     text = text.strip()
-    if text.startswith("```json"):
-        text = text[len("```json"):].strip()
-    if text.endswith("```"):
-        text = text[:-3].strip()
-    return text
+    if text.startswith("```"):
+        text = text.split("```", 2)[-1]
+    return text.strip()
 
 def call_extract_details_sync(ocr_text: str) -> str:
     prompt = f"""
-You are an expert financial‑document parser.
+You are an expert receipt parser.  Return ONLY a JSON object with these keys (no markdown fences):
 
-**Task**  
-Return ONLY a valid JSON object with the following keys
-(never wrap it in markdown, code fences, or extra text):
-
-{{  
-  "total_amount":        number  | null,     // e.g. 123.45  
-  "transaction_date":    "YYYY-MM-DD" | null,  
-  "vendor":              string | null,  
-  "items": [             // zero or more  
+{{
+  "merchant_name":     string | null,
+  "merchant_address":  string | null,
+  "merchant_phone":    string | null,
+  "merchant_email":    string | null,
+  "transaction_date":  "YYYY-MM-DD" | null,
+  "subtotal_amount":   number | null,
+  "tax_amount":        number | null,
+  "total_amount":      number | null,
+  "payment_method":    string | null,
+  "items": [  // zero or more
     {{
-      "name":      string,  
-      "price":     number | null,  
-      "quantity":  number | null  
-    }}  
-  ]  
+      "description": string,
+      "unit_price":  number | null,
+      "quantity":    number | null
+    }}
+  ]
 }}
 
-If a field is missing set it to **null** (or `[]` for items).
-
----  
-Receipt Text:  
+Receipt text:
 {ocr_text}
 
----  
-Output ONLY the JSON.
+Output only JSON.
 """
-    
-    completion = client.chat.completions.create(
+    comp = client.chat.completions.create(
         model="meta-llama/llama-4-scout-17b-16e-instruct",
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role":"user","content":prompt}],
         temperature=0.2,
         max_completion_tokens=1024,
         top_p=1,
-        stream=True,
-        stop=None,
+        stream=False,
+        response_format={
+            "type": "json_schema",
+            "json_schema": receipt_schema
+        }
     )
-    response_text = ""
-    for chunk in completion:
-        piece = chunk.choices[0].delta.content or ""
-        response_text += piece
-    return clean_response(response_text)
+    resp = comp.choices[0].message.content
+    return resp
 
 def call_expense_category_sync(ocr_text: str) -> str:
     prompt = (
@@ -84,22 +116,21 @@ def call_expense_category_sync(ocr_text: str) -> str:
         temperature=0.2,
         max_completion_tokens=256,
         top_p=1,
-        stream=True,
-        stop=None,
+        stream=False,
+        response_format={
+            "type": "json_schema",
+            "json_schema": category_schema
+        }
     )
-    response_text = ""
-    for chunk in completion:
-        piece = chunk.choices[0].delta.content or ""
-        response_text += piece
-    return clean_response(response_text)
+    return completion.choices[0].message.content
 
 # Async wrappers
 async def call_extract_details(text: str) -> dict:
     loop = asyncio.get_running_loop()
     raw = await loop.run_in_executor(None, call_extract_details_sync, text)
-    return json.loads(clean_response(raw))
+    return json.loads(raw)
 
 async def call_expense_category(text: str) -> str:
     loop = asyncio.get_running_loop()
     raw = await loop.run_in_executor(None, call_expense_category_sync, text)
-    return json.loads(clean_response(raw))["expense_category"]
+    return json.loads(raw)["expense_category"]

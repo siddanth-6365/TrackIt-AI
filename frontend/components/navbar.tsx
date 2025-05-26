@@ -12,11 +12,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Menu, User, LogOut } from "lucide-react"
-import { useState } from "react"
+import { useSidebar } from "@/components/sidebar-context"
 
 export function Navbar() {
   const { user, logout } = useAuth()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { toggleSidebar } = useSidebar()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
@@ -26,7 +26,7 @@ export function Navbar() {
             variant="ghost"
             size="icon"
             className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={toggleSidebar}
           >
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle menu</span>
