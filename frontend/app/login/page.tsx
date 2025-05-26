@@ -1,4 +1,3 @@
-/* updated login page that matches new AuthProvider path */
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
@@ -17,6 +16,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 
+const DEMO_CREDENTIALS: { email: string, password: string } = {
+  email: "test@gmail.com",
+  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD!,
+};
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +36,7 @@ const LoginPage: React.FC = () => {
       await login(email, password);
       toast({
         title: "Login successful",
-        description: "Welcome back to TrackIt‑AI!",
+        description: "Welcome back to TrackIt-AI!",
       });
     } catch (error) {
       toast({
@@ -43,6 +47,15 @@ const LoginPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleDemo = () => {
+    setEmail(DEMO_CREDENTIALS.email);
+    setPassword(DEMO_CREDENTIALS.password);
+    toast({
+      title: "Demo Credentials Filled",
+      description: `Email and password have been auto-filled for demo.`,
+    });
   };
 
   return (
@@ -72,12 +85,12 @@ const LoginPage: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Password</Label>
-                <Link
+                {/* <Link
                   href="#"
                   className="text-sm text-emerald-600 hover:underline"
                 >
                   Forgot password?
-                </Link>
+                </Link> */}
               </div>
               <Input
                 id="password"
@@ -89,6 +102,8 @@ const LoginPage: React.FC = () => {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
+
+            {/* Sign In Button */}
             <Button
               type="submit"
               className="w-full bg-emerald-600 hover:bg-emerald-700"
@@ -96,8 +111,7 @@ const LoginPage: React.FC = () => {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please
-                  wait
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
                 </>
               ) : (
                 "Sign In"
@@ -109,6 +123,14 @@ const LoginPage: React.FC = () => {
                 Sign up
               </Link>
             </div>
+            {/* Demo Button */}
+            <Button
+              type="button"
+              onClick={handleDemo}
+              className="w-full border border-emerald-600 text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white"
+            >
+              View Demo
+            </Button>
           </CardFooter>
         </form>
       </Card>

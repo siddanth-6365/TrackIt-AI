@@ -7,7 +7,7 @@ import { AuthProvider } from "@/components/auth-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "ReceiptAI - Personal Finance Assistant",
+  title: "TrackIt AI",
   description: "Track your expenses effortlessly with AI-powered receipt scanning",
 }
 
@@ -23,7 +23,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </AuthProvider>
-       
+
       </body>
     </html>
   )

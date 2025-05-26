@@ -13,7 +13,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
 /* ---------- Types ------------------------------------------------------ */
 type User = {
-  id: string            // <-- Supabase UUID
+  id: string
   email: string
   name?: string | null
 }

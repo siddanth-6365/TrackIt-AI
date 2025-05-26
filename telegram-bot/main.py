@@ -52,6 +52,7 @@ async def ask_expense_query(update, context, question):
         answer = data.get("answer") or "No answer returned."
         await update.message.reply_text(f"💡 {answer}")
     except Exception as e:
+        print("query error", e)
         await update.message.reply_text(f"❌ Error: {e}")
 
 
