@@ -63,7 +63,7 @@ export default function LandingPage() {
                                     </Link>
                                 </Button>
                                 <Button asChild size="lg" variant="outline" className="text-lg px-8 py-6">
-                                    <Link href="#demo">Watch Demo</Link>
+                                    <Link href="/login?demo=true">Watch Demo</Link>
                                 </Button>
                             </div>
 
@@ -253,7 +253,7 @@ export default function LandingPage() {
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-4xl font-bold mb-6">Ready to Transform Your Expense Tracking?</h2>
                     <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-                        Join thousands of users who have simplified their financial management with AI-powered receipt tracking.
+                        Join to have simplified your financial management with AI-powered receipt tracking.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         {/* <Button asChild size="lg" className="bg-white text-emerald-600 hover:bg-gray-100 text-lg px-8 py-6">
@@ -265,9 +265,9 @@ export default function LandingPage() {
                             asChild
                             size="lg"
                             variant="outline"
-                            className="border-white text-white hover:bg-white hover:text-emerald-600 text-lg px-8 py-6"
+                            className="border-white hover:bg-white text-emerald-600 text-lg px-8 py-6"
                         >
-                            <Link href="#demo">Watch Demo</Link>
+                            <Link href="/login?demo=true">Watch Demo</Link>
                         </Button>
                     </div>
                     {/* <p className="text-sm mt-6 opacity-75">No credit card required • 14-day free trial • Cancel anytime</p> */}

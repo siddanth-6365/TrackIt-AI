@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 const DEMO_CREDENTIALS: { email: string, password: string } = {
   email: "test@gmail.com",
@@ -27,6 +29,14 @@ const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const demo = searchParams.get("demo");
+    if (demo) {
+      handleDemo();
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

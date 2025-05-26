@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/auth-provider";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, ImageIcon, Check, X, Receipt, Plus, Trash2 } from "lucide-react";
+import { Loader2, Upload, ImageIcon, Check, X, Receipt, Plus, Trash2, DownloadIcon } from "lucide-react";
 import { apiURL } from "@/lib/api";
 
 const UploadReceiptPage: React.FC = () => {
@@ -134,14 +134,23 @@ const UploadReceiptPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
+
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* -------- Upload Card ------- */}
         <Card>
-          <CardHeader>
-            <CardTitle>Upload Receipt Image</CardTitle>
-            <CardDescription>Drag a photo or browse files</CardDescription>
+          <CardHeader className="flex flex-row justify-between">
+            <div>
+              <CardTitle>Upload Receipt Image</CardTitle>
+              <CardDescription>Drag a photo or browse files</CardDescription>
+            </div>
+            <div>
+              <a href="/receipt1.jpg" download>
+                <Button variant="outline" size="sm">
+                  <DownloadIcon className="mr-1 h-4 w-4" /> Download Test Image
+                </Button>
+              </a>
+            </div>
           </CardHeader>
           <CardContent>
             <div
