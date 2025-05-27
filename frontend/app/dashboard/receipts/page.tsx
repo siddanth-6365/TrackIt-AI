@@ -1,12 +1,12 @@
-"use client"
+"use client";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,15 +19,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -37,91 +30,125 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Search,
   MoreVertical,
-  Edit,
   Trash2,
-  Receipt,
-  Upload,
   Eye,
+  Download as DownloadIcon,
 } from "lucide-react";
 import { apiURL } from "@/lib/api";
 
 // ---------------- types ----------------
-interface Item { name: string; quantity: number | null; price: number | null }
+interface Item {
+  description: string;
+  quantity: number | null;
+  unit_price: number | null;
+}
+
 interface Receipt {
   id: number;
-  vendor: string;
+  user_id: string;
+  merchant_name: string;
+  merchant_address: string | null;
+  merchant_phone: string | null;
+  merchant_email: string | null;
   transaction_date: string;
+  subtotal_amount: number;
+  tax_amount: number;
   total_amount: number;
   expense_category: string;
-  items: Item[];
+  payment_method: string | null;
+  image_url: string;
+  created_at: string;
 }
 
 export default function ReceiptsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+
   const [receipts, setReceipts] = useState<Receipt[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Items modal state
+  const [itemsOpen, setItemsOpen] = useState<boolean>(false);
   const [currentItems, setCurrentItems] = useState<Item[]>([]);
 
-  // -------------- fetch --------------
+  // Image modal state
+  const [imageOpen, setImageOpen] = useState<boolean>(false);
+  const [currentImage, setCurrentImage] = useState<string>("");
+
+  // Fetch all receipts on mount
   useEffect(() => {
     if (user) fetchReceipts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  const fetchReceipts = async () => {
+  async function fetchReceipts() {
     setIsLoading(true);
     try {
       const res = await fetch(`${apiURL}/receipts/user/${user!.id}`);
       if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
       setReceipts(data.receipts);
-    } catch (err) {
-      toast({ title: "Error", description: "Failed to load", variant: "destructive" });
+    } catch {
+      toast({
+        title: "Error",
+        description: "Could not load receipts.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleDelete = (id: number) => {
-    toast({ title: "Deleted (mock)" });
-    setReceipts((prev) => prev.filter((r) => r.id !== id));
-  };
+  // Fetch items for a single receipt
+  async function viewItems(receiptId: number) {
+    try {
+      const res = await fetch(`${apiURL}/receipts/${receiptId}/items`);
+      if (!res.ok) throw new Error("Items fetch failed");
+      const items: Item[] = await res.json();
+      setCurrentItems(items);
+      setItemsOpen(true);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Could not load items.",
+        variant: "destructive",
+      });
+    }
+  }
 
-  const filtered = receipts.filter(
-    (r) =>
-      r.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.expense_category.toLowerCase().includes(searchQuery.toLowerCase())
+  // Show image modal
+  function viewImage(url: string) {
+    setCurrentImage(url);
+    setImageOpen(true);
+  }
+
+  const filtered = receipts.filter((r) =>
+    r.merchant_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.expense_category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // -------------- UI --------------
   return (
     <div className="space-y-6">
-      {/* header */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight"> Receipts</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Receipts</h1>
           <p className="text-muted-foreground">View and manage your receipts</p>
         </div>
         <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
           <Link href="/dashboard/upload">
-            <Upload className="mr-2 h-4 w-4" /> Upload New
+            <Eye className="mr-2 h-4 w-4" /> Upload New
           </Link>
         </Button>
       </div>
 
-      {/* main card */}
+      {/* Table */}
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              {/* <CardTitle>All Receipts</CardTitle> */}
-              <CardDescription>
-                {receipts.length} {receipts.length === 1 ? "receipt" : "receipts"}
-              </CardDescription>
-            </div>
+            <CardDescription>
+              {receipts.length} {receipts.length === 1 ? "receipt" : "receipts"}
+            </CardDescription>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -138,98 +165,149 @@ export default function ReceiptsPage() {
             <p className="p-6 text-center">Loading…</p>
           ) : receipts.length === 0 ? (
             <div className="flex flex-col items-center p-8 border border-dashed rounded-lg text-center">
-              <Receipt className="h-6 w-6 text-gray-500 mb-2" />
+              <Eye className="h-6 w-6 text-gray-500 mb-2" />
               No receipts yet
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-auto ">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Vendor</TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Merchant</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
+                    <TableHead>Subtotal</TableHead>
+                    <TableHead>Tax</TableHead>
+                    <TableHead>Total</TableHead>
                     <TableHead>Category</TableHead>
+                    <TableHead>Payment</TableHead>
                     <TableHead>Items</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Created At</TableHead>
+
+                    {/* <TableHead className="text-right">Actions</TableHead> */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((r) => (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.vendor}</TableCell>
+                      <TableCell>{r.id}</TableCell>
+                      <TableCell>{r.merchant_name}</TableCell>
+                      <TableCell>{r.merchant_address ?? "—"}</TableCell>
+                      <TableCell>{r.merchant_phone ?? "—"}</TableCell>
+                      <TableCell>{r.merchant_email ?? "—"}</TableCell>
                       <TableCell>{new Date(r.transaction_date).toLocaleDateString()}</TableCell>
-                      <TableCell>${r.total_amount.toFixed(2)}</TableCell>
+                      <TableCell>{r.subtotal_amount.toFixed(2)}</TableCell>
+                      <TableCell>{r.tax_amount.toFixed(2)}</TableCell>
+                      <TableCell>{r.total_amount.toFixed(2)}</TableCell>
                       <TableCell>{r.expense_category}</TableCell>
+                      <TableCell>{r.payment_method ?? "—"}</TableCell>
                       <TableCell>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setCurrentItems(r.items || []);
-                            setOpen(true);
-                          }}
+                          onClick={() => viewItems(r.id)}
                         >
-                          <Eye className="h-4 w-4 mr-1" /> View
+                          <Eye className="mr-1 h-4 w-4" /> View
                         </Button>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Edit className="mr-2 h-4 w-4" /> Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDelete(r.id)}>
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => viewImage(r.image_url)}
+                        >
+                          <DownloadIcon className="mr-1 h-4 w-4" /> View Image
+                        </Button>
                       </TableCell>
+                      <TableCell>{new Date(r.created_at).toLocaleString()}</TableCell>
+
+                      {/* <TableCell className="text-right space-x-2">
+                     
+                        <Button size="icon" onClick={() => viewItems(r.id)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button size="icon" onClick={() => viewImage(r.image_url)}>
+                          <DownloadIcon className="h-4 w-4" />
+                        </Button>
+                      </TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* -------- Items dialog -------- */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* Items Dialog */}
+      <Dialog open={itemsOpen} onOpenChange={setItemsOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Itemised list</DialogTitle>
-            <DialogDescription>
-              {currentItems.length} item{currentItems.length !== 1 && "s"}
-            </DialogDescription>
+            <DialogTitle>Itemised List</DialogTitle>
+            <CardDescription>
+              {currentItems.length}{" "}
+              {currentItems.length === 1 ? "item" : "items"}
+            </CardDescription>
           </DialogHeader>
-          {currentItems.length ? (
-            <table className="w-full text-sm">
-              <thead className="bg-muted sticky top-0">
-                <tr>
-                  <th className="px-2 py-1 text-left">Name</th>
-                  <th className="px-2 py-1 text-right">Qty</th>
-                  <th className="px-2 py-1 text-right">Price</th>
-                </tr>
-              </thead>
-              <tbody>
+          {currentItems.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Qty</TableHead>
+                  <TableHead>Unit Price</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {currentItems.map((it, i) => (
-                  <tr key={i} className="odd:bg-white even:bg-gray-50">
-                    <td className="px-2 py-1">{it.name}</td>
-                    <td className="px-2 py-1 text-right">{it.quantity ?? "—"}</td>
-                    <td className="px-2 py-1 text-right">{it.price != null ? `$${it.price}` : "—"}</td>
-                  </tr>
+                  <TableRow key={i}>
+                    <TableCell>{it.description}</TableCell>
+                    <TableCell className="text-right">
+                      {it.quantity ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {it.unit_price != null
+                        ? `$${it.unit_price.toFixed(2)}`
+                        : "—"}
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           ) : (
-            <p className="text-muted-foreground">No items</p>
+            <p className="p-4 text-center">No items found.</p>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Image Dialog */}
+      <Dialog open={imageOpen} onOpenChange={setImageOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Receipt Image</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4">
+            <img
+              src={currentImage}
+              alt="Receipt"
+              className="max-h-96 w-auto rounded shadow"
+            />
+            <a
+              href={currentImage}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button>
+                <DownloadIcon className="mr-2 h-4 w-4" /> Download
+              </Button>
+            </a>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

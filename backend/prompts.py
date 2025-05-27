@@ -48,22 +48,38 @@ Provide a concise, friendly summary directly answering the user's question. If n
 # NL → SQL via Cloudflare SQLCoder
 SQLCODER_PROMPT_TEMPLATE = """
 ### Task
-Generate a single valid SQL query answering the question below for the 'receipts' table, filtering by user_id = '{user_id}'.
+Generate a single valid SQL query answering the question below for the `receipts` (and, if needed, `receipt_items`) tables, filtering by `user_id = '{user_id}'`.
 
 Question:
 {question}
 
 ### Schema
 CREATE TABLE receipts (
-  id SERIAL PRIMARY KEY,
-  user_id UUID,
-  vendor TEXT,
+  id              SERIAL PRIMARY KEY,
+  user_id         UUID,
+  merchant_name   TEXT,
+  merchant_address TEXT,
+  merchant_phone  TEXT,
+  merchant_email  TEXT,
   transaction_date DATE,
-  total_amount NUMERIC,
+  subtotal_amount NUMERIC(12,2),
+  tax_amount      NUMERIC(12,2),
+  total_amount    NUMERIC(12,2),
   expense_category TEXT,
-  items JSONB
+  payment_method  TEXT,
+  image_url       TEXT,
+  created_at      TIMESTAMPTZ
+);
+
+CREATE TABLE receipt_items (
+  id           SERIAL PRIMARY KEY,
+  receipt_id   INTEGER,
+  description  TEXT,
+  unit_price   NUMERIC(12,2),
+  quantity     NUMERIC(12,2),
+  line_total   NUMERIC GENERATED ALWAYS AS (unit_price * quantity) STORED
 );
 
 ### Answer
-Provide ONLY the SQL query without any markdown or extra text.
+Provide ONLY the SQL query (no markdown, no commentary).
 """

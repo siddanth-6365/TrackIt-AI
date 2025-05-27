@@ -102,22 +102,24 @@ const UploadReceiptPage: React.FC = () => {
 
   /* ------ save ------ */
   const saveReceipt = async () => {
-    if (!extractedData || !user) return;
-
+    if (!extractedData || !user || !file) return;
     setIsProcessing(true);
-
+  
+    // 1) build FormData
+    const form = new FormData();
+    form.append("user_id", user.id);
+    form.append("file", file);
+    // payload must be a JSON string
+    form.append("payload", JSON.stringify(extractedData));
+  
     try {
+      // 2) no explicit Content-Type header here
       const res = await fetch(`${apiURL}/receipts/save`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: user.id,      // keep snake‑case to match backend model
-          payload: extractedData
-        }),
+        body: form,
       });
-
       if (!res.ok) throw new Error(await res.text());
-
+  
       toast({ title: "Receipt saved!" });
       resetForm();
     } catch (e: any) {
