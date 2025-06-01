@@ -10,7 +10,7 @@ This project turns receipt images into structured expense data, stores it in Sup
 |-------------------------------------|----------------------------------------------------------------------------------------------|
 | **LLM (receipt parsing & categorization)** |  **`meta‑llama/llama‑4` models API**                             |
 | **Text‑to‑SQL**                     | **`sqlcoder-7b-2`** via Cloudflare AI (HuggingFace: defog/sqlcoder-7b-2)                      |
-| **OCR**                             | Tesseract                                                                           |
+| **OCR**                             | Mistral OCR (fallback: tesseract)                                                             |
 | **Backend API**                     | Python + FastAPI + asyncio                                                                    |
 | **Database**                        | Supabase Postgres                                                    |
 | **Frontend**                        | Next.js + Tailwind / shadcn                                            |
@@ -36,16 +36,6 @@ This project turns receipt images into structured expense data, stores it in Sup
 | `POST` | `/receipts/save`              | save structured receipt JSON                 |
 | `POST` | `/receipts/telegram_upload`   | OCR + LLM extract → save via Telegram bot     |
 | `POST` | `/query/ask`                  | NL query → SQLCoder → execute → summary       |
-
----
-
-## Project Road‑Map
-
-1. ✅ Auth + receipt ingestion + DB save  
-2. ✅ List receipts per user  
-3. ✅ NL query → text‑to‑SQL via **sqlcoder‑7b‑2**  
-4. ✅ Telegram bot integration (upload & query)  
-5. ⏳ Budget alerts & email/WhatsApp notifications
 
 ---
 
