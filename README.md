@@ -1,6 +1,6 @@
 # TrackIt‑AI
 
-This project turns receipt images into structured expense data, stores it in Supabase Postgres, and lets users ask natural‑language questions about their spending — now also accessible via Telegram.
+This project turns receipt images into structured expense data, stores it in Supabase Postgres, and lets users ask natural‑language questions about their spending.
 
 ---
 
@@ -14,7 +14,6 @@ This project turns receipt images into structured expense data, stores it in Sup
 | **Backend API**                     | Python + FastAPI + asyncio                                                                    |
 | **Database**                        | Supabase Postgres                                                    |
 | **Frontend**                        | Next.js + Tailwind / shadcn                                            |
-| **Messaging**                       | Telegram Bot integration via `python‑telegram‑bot`                                            |
 
 ---
 
@@ -43,7 +42,7 @@ This project turns receipt images into structured expense data, stores it in Sup
 
 ```bash
 git clone https://github.com/your-handle/trackit-ai
-d
+
 # ---------- backend ----------
 cd trackit-ai/backend
 python -m venv venv && source venv/bin/activate
