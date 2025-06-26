@@ -8,3 +8,7 @@ groq
 pydantic
 google-generativeai
 mistralai
+langchain
+langchain-community
+requests
+asyncio

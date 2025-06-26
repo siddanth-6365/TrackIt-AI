@@ -1,123 +1,100 @@
-"use client";
-import React, { useState, useRef, FormEvent } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useAuth } from "@/components/auth-provider";
-import { Loader2 } from "lucide-react";
-import { apiURL } from "@/lib/api";
+"use client"
 
-interface ChatMessage {
-    from: "user" | "bot";
-    text: string;
-}
+import React, { useState, useEffect } from "react"
+import { useAuth } from "@/components/auth-provider"
+import { ConversationChat } from "@/components/conversation-chat"
+import { ConversationSidebar } from "@/components/conversation-sidebar"
+import { conversationAPI } from "@/lib/conversation-api"
+import { Loader2 } from "lucide-react"
 
-export default function DashboardQueryPage() {
-    const { user } = useAuth();
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [input, setInput] = useState("");
-    const [loading, setLoading] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
+export default function ConversationalQueryPage() {
+  const { user } = useAuth()
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
-    const sendMessage = async (e: FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || !user) return;
-      
-        const question = input.trim();
-        setMessages((m) => [...m, { from: "user", text: question }]);
-        setInput("");
-        setLoading(true);
-      
-        try {
-          const res = await fetch(`${apiURL}/query/ask`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ q: question, user_id: user.id }),
-          });
-          if (!res.ok) throw new Error(await res.text());
-      
-          // ← pull out the new `answer` property
-          const { answer } = await res.json();
-      
-          // show only the human‑readable answer
-          setMessages((m) => [...m, { from: "bot", text: answer }]);
-        } catch (err: any) {
-            console.log(err);
-          setMessages((m) => [
-            ...m,
-            { from: "bot", text: "some error occurred, try again with another question" },
-          ]);
-        } finally {
-          setLoading(false);
-          inputRef.current?.focus();
-        }
-      };
-      
+  useEffect(() => {
+    if (user) {
+      initializeConversation()
+    }
+  }, [user])
 
+  const initializeConversation = async () => {
+    if (!user) return
+
+    try {
+      setLoading(true)
+      console.log('Initializing conversation for user:', user)
+      // Get user's conversations
+      const conversations = await conversationAPI.getUserConversations(user.id)
+      
+      if (conversations.conversations.length > 0) {
+        // Use the most recent conversation
+        setActiveConversationId(conversations.conversations[0].id)
+      } else {
+        // Create a new conversation
+        await createNewConversation()
+      }
+    } catch (error) {
+      console.error('Failed to initialize conversation:', error)
+      // Create a new conversation as fallback
+      await createNewConversation()
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const createNewConversation = async () => {
+    if (!user) return
+
+    try {
+      const newConversation = await conversationAPI.createConversation(
+        user.id, 
+        "New Conversation"
+      )
+      setActiveConversationId(newConversation.id)
+    } catch (error) {
+      console.error('Failed to create new conversation:', error)
+    }
+  }
+
+  const handleConversationSelect = (conversationId: string) => {
+    setActiveConversationId(conversationId)
+  }
+
+  const handleTitleChange = async (title: string) => {
+    // This could be enhanced to update the conversation title in the backend
+    console.log('Conversation title updated:', title)
+  }
+
+  if (loading || !activeConversationId) {
     return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        <span>Setting up your conversation...</span>
+      </div>
+    )
+  }
 
-        <div className="space-y-6 p-4  h-[80vh]">
-            <Card  className="h-full">
-                <CardHeader>
-                    <CardTitle>Ask Your Receipts</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col h-full min-h-0 p-0">
-                    <div className="flex flex-col flex-1 min-h-0">
-                        <ScrollArea className="flex-1 min-h-0 p-4">
-                            <div className="flex flex-col space-y-4">
-                                {messages.map((msg, i) => (
-                                    <div
-                                        key={i}
-                                        className={`flex ${msg.from === "user" ? "justify-end" : "justify-start"
-                                            }`}
-                                    >
-                                        <div
-                                            className={`max-w-[80%] px-4 py-2 rounded-lg whitespace-pre-wrap ${msg.from === "user"
-                                                    ? "bg-emerald-600 text-white text-right"
-                                                    : "bg-gray-100 text-gray-900 text-left"
-                                                }`}
-                                        >
-                                            {msg.text}
-                                        </div>
-                                    </div>
-                                ))}
+  return (
+    <div className="h-[calc(100vh-8rem)] flex gap-4">
+      {/* Conversation Sidebar */}
+      <div className="w-80 flex-shrink-0">
+        <ConversationSidebar
+          activeConversationId={activeConversationId}
+          onConversationSelect={handleConversationSelect}
+          onNewConversation={createNewConversation}
+          className="h-full"
+        />
+      </div>
 
-                                {loading && (
-                                    <div className="flex justify-start">
-                                        <div className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg inline-flex items-center">
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Thinking...
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </ScrollArea>
-                    </div>
-
-                    <form
-                        onSubmit={sendMessage}
-                        className="flex gap-2 border-t p-4 bg-white sticky bottom-0 z-10"
-                        style={{ boxShadow: '0 -2px 8px -4px rgba(0,0,0,0.04)' }}
-                    >
-                        <Input
-                            ref={inputRef}
-                            className="flex-1"
-                            placeholder="Ask something like ‘How much did I spend on food this month?’"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                        />
-                        <Button type="submit" disabled={!input.trim() || loading}>
-                            Send
-                        </Button>
-                    </form>
-                </CardContent>
-            </Card>
-        </div>
-    );
+      {/* Main Chat Area */}
+      <div className="flex-1 min-w-0">
+        <ConversationChat
+          conversationId={activeConversationId}
+          onTitleChange={handleTitleChange}
+          className="h-full"
+        />
+      </div>
+    </div>
+  )
 }
