@@ -11,6 +11,9 @@ import { Loader2, Bot, User, Brain, Database, BarChart3, Send, Sparkles, Trendin
 import { useAuth } from "@/components/auth-provider"
 import { conversationAPI, type ConversationMessage, type ChatResponse } from "@/lib/conversation-api"
 import { cn } from "@/lib/utils"
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
 
 interface ConversationChatProps {
   conversationId: string
@@ -215,9 +218,6 @@ export function ConversationChat({ conversationId, onTitleChange, className = ""
           </div>
           <div>
             <h2 className="text-xl font-semibold">AI Expense Assistant</h2>
-            <p className="text-sm text-muted-foreground font-normal">
-              Ask me anything about your receipts and expenses
-            </p>
           </div>
         </CardTitle>
       </CardHeader>
@@ -286,7 +286,16 @@ export function ConversationChat({ conversationId, onTitleChange, className = ""
                     </div>
                   ) : (
                     <>
-                      <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                      {/* <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                       */}
+                      <div className="whitespace-pre-wrap text-sm">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm]}
+                          rehypePlugins={[rehypeHighlight]}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
 
                       {/* Agent and classification info for assistant messages */}
                       {message.role === "assistant" && message.metadata?.agent && (

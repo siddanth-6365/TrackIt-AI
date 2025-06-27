@@ -116,7 +116,7 @@ export default function ConversationalQueryPage() {
         </div>
       </div> */}
 
-      <div className="h-[calc(100vh-9rem)] flex gap-6">
+      <div className="h-[calc(100vh-8rem)] flex gap-6">
         {/* Conversation Sidebar */}
         <div className="w-80 flex-shrink-0">
           <ConversationSidebar

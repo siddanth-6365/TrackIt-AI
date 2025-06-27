@@ -12,7 +12,7 @@ executor = ThreadPoolExecutor(max_workers=4)
 
 # ── Pydantic Schemas ──────────────────────────────────────────────────────────
 class ItemOut(BaseModel):
-    description: str
+    description: str | None  # Allow None for description
     unit_price: float | None
     quantity: float | None
 
