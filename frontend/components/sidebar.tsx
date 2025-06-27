@@ -1,102 +1,167 @@
 "use client"
 
+import type * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Home, Receipt, Upload, PieChart, Settings, X } from "lucide-react"
-import { useSidebar } from "@/components/sidebar-context"
-import { useEffect } from "react"
+import { useAuth } from "@/components/auth-provider"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Home, Receipt, Upload, PieChart, Settings, User, LogOut, ChevronUp, Sparkles } from "lucide-react"
 
-const sidebarItems = [
+const navigationItems = [
   {
-    name: "Dashboard",
-    href: "/dashboard",
+    title: "Dashboard",
+    url: "/dashboard",
     icon: Home,
   },
   {
-    name: "Upload Receipt",
-    href: "/dashboard/upload",
+    title: "Upload Receipt",
+    url: "/dashboard/upload",
     icon: Upload,
   },
   {
-    name: "Query Receipts",
-    href: "/dashboard/query",
+    title: "Query Receipts",
+    url: "/dashboard/query",
     icon: PieChart,
   },
   {
-    name: "My Receipts",
-    href: "/dashboard/receipts",
+    title: "My Receipts",
+    url: "/dashboard/receipts",
     icon: Receipt,
-  }
+  },
+  {
+    title: "Settings",
+    url: "/dashboard/settings",
+    icon: Settings,
+  },
 ]
 
-export function Sidebar() {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
-  const { isSidebarOpen, setSidebarOpen } = useSidebar()
-
-  // Close sidebar on Escape key (mobile)
-  useEffect(() => {
-    if (!isSidebarOpen) return
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSidebarOpen(false)
-    }
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [isSidebarOpen, setSidebarOpen])
-
-  // Overlay click closes sidebar (mobile)
-  const handleOverlayClick = () => setSidebarOpen(false)
+  const { user, logout } = useAuth()
 
   return (
-    <>
-      {/* Overlay for mobile */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-black/40 transition-opacity md:hidden",
-          isSidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}
-        aria-hidden="true"
-        onClick={handleOverlayClick}
-      />
-      {/* Sidebar panel */}
-      <aside
-        className={cn(
-          "fixed top-0 left-0 z-50 flex h-full w-64 flex-col border-r bg-white shadow-lg transition-transform duration-300 md:static md:translate-x-0 md:shadow-none md:flex h-[calc(100vh-4rem)]",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-          "md:translate-x-0"
-        )}
-        role="navigation"
-        aria-label="Sidebar"
-      >
-        {/* Close button for mobile */}
-        <div className="flex items-center justify-between p-4 md:hidden">
-          <span className="text-lg font-semibold text-emerald-700">Menu</span>
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
-            <X className="h-5 w-5" />
-            <span className="sr-only">Close sidebar</span>
-          </Button>
-        </div>
-        <div className="flex flex-col gap-1 p-4">
-          {sidebarItems.map((item) => (
-            <Button
-              key={item.href}
-              variant="ghost"
-              className={cn(
-                "justify-start",
-                pathname === item.href && "bg-emerald-50 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700",
-              )}
-              asChild
-              onClick={() => setSidebarOpen(false)} // Close sidebar on nav (mobile)
-            >
-              <Link href={item.href} className="flex items-center gap-3 px-3 py-2">
-                <item.icon className="h-5 w-5" />
-                {item.name}
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <Link href="/dashboard">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
+                  <Sparkles className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-semibold">TrackIt-AI</span>
+                  <span className="truncate text-xs text-muted-foreground">Receipt Manager</span>
+                </div>
               </Link>
-            </Button>
-          ))}
-        </div>
-      </aside>
-    </>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navigationItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild isActive={pathname === item.url} tooltip={item.title}>
+                    <Link href={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                >
+                  <Avatar className="h-8 w-8 rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-emerald-100 text-emerald-700">
+                      {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">{user?.name || "User"}</span>
+                    <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
+                  </div>
+                  <ChevronUp className="ml-auto size-4" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                side="bottom"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                    <Avatar className="h-8 w-8 rounded-lg">
+                      <AvatarFallback className="rounded-lg bg-emerald-100 text-emerald-700">
+                        {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">{user?.name || "User"}</span>
+                      <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
+                    </div>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/settings">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="text-red-600 focus:text-red-600">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   )
 }

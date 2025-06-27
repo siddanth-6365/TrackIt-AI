@@ -165,8 +165,9 @@ export class ConversationAPI {
     })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`Quick query error: ${errorText}`)
+      const errorText = await response.json()
+      console.error('Quick query error:', errorText)
+      throw new Error(`Quick query error: ${errorText.detail}`)
     }
 
     return response.json()

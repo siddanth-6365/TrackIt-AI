@@ -9,11 +9,13 @@ from services import ocr_service, llm_service, receipt_service
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 executor = ThreadPoolExecutor(max_workers=4)
 
+
 # ── Pydantic Schemas ──────────────────────────────────────────────────────────
 class ItemOut(BaseModel):
     description: str
     unit_price: float | None
     quantity: float | None
+
 
 class ReceiptOut(BaseModel):
     id: int
@@ -29,9 +31,11 @@ class ReceiptOut(BaseModel):
     expense_category: str | None
     payment_method: str | None
     image_url: str | None
+    created_at: str
 
     class Config:
         orm_mode = True
+
 
 class ExtractedReceipt(BaseModel):
     merchant_name: str | None
@@ -46,20 +50,20 @@ class ExtractedReceipt(BaseModel):
     payment_method: str | None
     items: List[ItemOut] = Field(default_factory=list)
 
+
 class SaveReceiptRequest(BaseModel):
     user_id: str
     receipt: ExtractedReceipt
+
 
 class ReceiptList(BaseModel):
     receipts: List[ReceiptOut]
     total: int
 
+
 # ── Extract without saving ───────────────────────────────────────────────────
 @router.post("/extract", response_model=ExtractedReceipt)
-async def extract_receipt(
-    user_id: str = Form(...),
-    file: UploadFile = File(...)
-):
+async def extract_receipt(user_id: str = Form(...), file: UploadFile = File(...)):
     try:
         image_bytes = await file.read()
     except Exception:
@@ -71,7 +75,7 @@ async def extract_receipt(
         raise HTTPException(400, "No text extracted")
 
     # parallel LLM calls
-    details_task  = asyncio.create_task(llm_service.call_extract_details(raw_text))
+    details_task = asyncio.create_task(llm_service.call_extract_details(raw_text))
     category_task = asyncio.create_task(llm_service.call_expense_category(raw_text))
 
     try:
@@ -83,16 +87,15 @@ async def extract_receipt(
     print("details", details)
     return details
 
+
 # ── Save + upload image to S3 + split into two tables ─────────────────═══════
 @router.post("/save", response_model=ReceiptOut)
 async def save_receipt(
-    user_id: str = Form(...),
-    file: UploadFile = File(...),
-    payload: str = Form(...)
+    user_id: str = Form(...), file: UploadFile = File(...), payload: str = Form(...)
 ):
     """
-    1) Upload receipt image to S3  
-    2) Insert into `receipts` + `receipt_items`  
+    1) Upload receipt image to S3
+    2) Insert into `receipts` + `receipt_items`
     3) Return full ReceiptOut
     """
     # parse extracted JSON payload
@@ -113,18 +116,18 @@ async def save_receipt(
 
     return saved
 
+
 # ── List receipts ───────────────────────────────────────────────────────────
 @router.get("/user/{user_id}", response_model=ReceiptList)
 async def list_receipts(
-    user_id: str,
-    limit: int = Query(50, ge=1),
-    offset: int = Query(0, ge=0)
+    user_id: str, limit: int = Query(50, ge=1), offset: int = Query(0, ge=0)
 ):
     try:
         records, total = await receipt_service.get_receipts(user_id, limit, offset)
         return ReceiptList(receipts=records, total=total)
     except Exception as e:
         raise HTTPException(500, str(e))
+
 
 # ── Fetch items for a single receipt ────────────────────────────────────────
 @router.get("/{receipt_id}/items", response_model=List[ItemOut])
