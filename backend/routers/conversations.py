@@ -106,11 +106,6 @@ async def send_chat_message(conversation_id: str, user_id: str, message: ChatMes
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation not found")
 
-        # Save user message
-        user_message = await save_message(
-            conversation_id=conversation_id, role="user", content=message.message
-        )
-
         # Process query with conversational AI
         ai_response = await ConversationalQueryEngine.process_conversational_query(
             query=message.message, user_id=user_id, conversation_id=conversation_id
@@ -118,6 +113,9 @@ async def send_chat_message(conversation_id: str, user_id: str, message: ChatMes
 
         if not ai_response.get("success", False):
             error_msg = ai_response.get("error", "Unknown error occurred")
+            await save_message(
+                conversation_id=conversation_id, role="user", content=message.message
+            )
             # Save error response
             await save_message(
                 conversation_id=conversation_id,
@@ -126,6 +124,11 @@ async def send_chat_message(conversation_id: str, user_id: str, message: ChatMes
                 metadata={"error": True, "original_error": error_msg},
             )
             raise HTTPException(status_code=500, detail=error_msg)
+
+        # Save user message
+        user_message = await save_message(
+            conversation_id=conversation_id, role="user", content=message.message
+        )
 
         # Save assistant response
         assistant_message = await save_message(

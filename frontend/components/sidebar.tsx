@@ -48,11 +48,7 @@ const navigationItems = [
     url: "/dashboard/receipts",
     icon: Receipt,
   },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
+ 
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

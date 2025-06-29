@@ -299,7 +299,7 @@ export function ConversationChat({ conversationId, onTitleChange, className = ""
 
                       {/* Agent and classification info for assistant messages */}
                       {message.role === "assistant" && message.metadata?.agent && (
-                        <div className="flex items-center gap-2 mt-3 pt-2 border-t border-gray-100">
+                        <div className="flex items-center gap-2 mt-3 pt-2  border-gray-100">
                           <Badge
                             variant="outline"
                             className={cn("text-xs border", getAgentColor(message.metadata.agent))}
@@ -308,11 +308,11 @@ export function ConversationChat({ conversationId, onTitleChange, className = ""
                             <span className="ml-1 capitalize">{message.metadata.agent} Agent</span>
                           </Badge>
 
-                          {message.metadata.classification?.complexity && (
+                          {/* {message.metadata.classification?.complexity && (
                             <Badge variant="outline" className="text-xs">
                               Complexity: {message.metadata.classification.complexity}
                             </Badge>
-                          )}
+                          )} */}
                         </div>
                       )}
                     </>

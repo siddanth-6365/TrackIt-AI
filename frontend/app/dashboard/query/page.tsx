@@ -68,10 +68,10 @@ export default function ConversationalQueryPage() {
   if (loading || !activeConversationId) {
     return (
       <div className="space-y-6">
-        <div>
+        {/* <div>
           <h1 className="text-3xl font-bold tracking-tight">AI Query Assistant</h1>
           <p className="text-muted-foreground">Ask questions about your receipts and expenses</p>
-        </div>
+        </div> */}
 
         <div className="h-[calc(100vh-12rem)] flex gap-6">
           {/* Sidebar Skeleton */}
