@@ -1,6 +1,7 @@
 # TrackIt‑AI
 
 A personal project that transforms receipt images into structured expense data and provides a conversational AI assistant for exploring and analyzing your spending.
+### Demo: [Watch the project demo video](https://youtu.be/ki9gguv20kc)
 
 ## Key Features
 
