@@ -1,64 +1,23 @@
-# app/routers/receipts.py
+"""
+receipts router for handling receipt extraction, saving, and listing.
+"""
+
 import asyncio
 from fastapi import APIRouter, File, UploadFile, Form, HTTPException, Query, Depends
 from pydantic import BaseModel, Field
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
 from services import ocr_service, llm_service, receipt_service
+from schemas.receipts import (
+    ItemOut,
+    ReceiptOut,
+    ExtractedReceipt,
+    SaveReceiptRequest,
+    ReceiptList,
+)
 
 router = APIRouter(prefix="/receipts", tags=["receipts"])
 executor = ThreadPoolExecutor(max_workers=4)
-
-
-# ── Pydantic Schemas ──────────────────────────────────────────────────────────
-class ItemOut(BaseModel):
-    description: str | None  # Allow None for description
-    unit_price: float | None
-    quantity: float | None
-
-
-class ReceiptOut(BaseModel):
-    id: int
-    user_id: str
-    merchant_name: str
-    merchant_address: str | None
-    merchant_phone: str | None
-    merchant_email: str | None
-    transaction_date: str
-    subtotal_amount: float
-    tax_amount: float
-    total_amount: float
-    expense_category: str | None
-    payment_method: str | None
-    image_url: str | None
-    created_at: str
-
-    class Config:
-        orm_mode = True
-
-
-class ExtractedReceipt(BaseModel):
-    merchant_name: str | None
-    merchant_address: str | None
-    merchant_phone: str | None
-    merchant_email: str | None
-    transaction_date: str | None
-    subtotal_amount: float | None
-    tax_amount: float | None
-    total_amount: float | None
-    expense_category: str | None
-    payment_method: str | None
-    items: List[ItemOut] = Field(default_factory=list)
-
-
-class SaveReceiptRequest(BaseModel):
-    user_id: str
-    receipt: ExtractedReceipt
-
-
-class ReceiptList(BaseModel):
-    receipts: List[ReceiptOut]
-    total: int
 
 
 # ── Extract without saving ───────────────────────────────────────────────────

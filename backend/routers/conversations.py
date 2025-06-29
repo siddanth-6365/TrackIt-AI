@@ -16,59 +16,17 @@ from services.conversation_service import (
     delete_conversation,
 )
 from services.query_agent import ConversationalQueryEngine
+from schemas.conversation import (
+    ConversationCreate,
+    ConversationResponse,
+    MessageResponse,
+    ChatMessage,
+    ChatResponse,
+    ConversationList,
+    MessageList,
+)
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
-
-
-# Pydantic Models
-class ConversationCreate(BaseModel):
-    user_id: str
-    title: Optional[str] = None
-
-
-class ConversationResponse(BaseModel):
-    id: str
-    user_id: str
-    title: str
-    created_at: str
-    updated_at: str
-    message_count: int
-    is_active: bool
-
-
-class MessageResponse(BaseModel):
-    id: str
-    conversation_id: str
-    role: str
-    content: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    created_at: str
-
-
-class ChatMessage(BaseModel):
-    message: str
-
-
-class ChatResponse(BaseModel):
-    message_id: str
-    response: str
-    conversation_id: str
-    agent_used: str
-    classification: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class ConversationList(BaseModel):
-    conversations: List[ConversationResponse]
-    total: int
-
-
-class MessageList(BaseModel):
-    messages: List[MessageResponse]
-    total: int
-
-
-# API Endpoints
 
 
 @router.post("/", response_model=ConversationResponse)
@@ -117,7 +75,9 @@ async def get_conversation_message_history(
     """Get messages for a conversation"""
     try:
         raw_messages = await get_conversation_messages(conversation_id, limit)
-        messages = [json.loads(msg) if isinstance(msg, str) else msg for msg in raw_messages]
+        messages = [
+            json.loads(msg) if isinstance(msg, str) else msg for msg in raw_messages
+        ]
         # Ensure metadata is always a dict
         for msg in messages:
             if "metadata" in msg and isinstance(msg["metadata"], str):

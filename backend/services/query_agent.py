@@ -133,13 +133,16 @@ Please provide a complete answer considering the conversation context.
             }
 
         try:
+            print(f"Processing SQL query: {enhanced_query}")
             # Generate SQL
             sql = await asyncio.get_running_loop().run_in_executor(
                 None, get_sql_from_question, enhanced_query, user_id
             )
+            print(f"Generated SQL: {sql}")
 
             # Execute SQL
             rows = execute_sql_in_supabase(supabase, sql)
+            print(f"SQL execution result: {rows}")
 
             # Generate explanation
             answer = await asyncio.get_running_loop().run_in_executor(
@@ -309,9 +312,11 @@ class ConversationalQueryEngine:
             from services.conversation_service import load_conversation_memory
 
             memory = await load_conversation_memory(conversation_id)
+            print("memory fetched has:", memory.get_conversation_context())
 
             # Classify the query
             classification = await QueryClassifier.classify_query(query, memory)
+            print(f"Query classification: {classification}")
 
             # Route to appropriate agent
             result = None

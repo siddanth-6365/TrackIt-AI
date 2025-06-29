@@ -6,7 +6,6 @@ pytesseract
 Pillow
 groq
 pydantic
-google-generativeai
 mistralai
 langchain
 langchain-community
