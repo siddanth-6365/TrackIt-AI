@@ -24,10 +24,10 @@ A personal project that transforms receipt images into structured expense data a
 
 ### Demo Images
 
-<img src="https://github.com/user-attachments/assets/c112ecbf-d3b6-47d5-a9d5-e9ac20edf0b7" alt="Screenshot 1" width="500" />
-<img src="https://github.com/user-attachments/assets/18aa4b03-7c33-42c6-912f-6b10111c54cc" alt="Screenshot 2" width="500" />
-<img width="500" alt="Screenshot 2025-05-05 at 12 43 07 PM" src="https://github.com/user-attachments/assets/9ac2c56e-d2e6-47fc-a5ec-0a8498b43841" />
-<img width="500" alt="Screenshot 2025-05-05 at 12 23 36 PM" src="https://github.com/user-attachments/assets/1d45ffa9-f7e3-4b1c-ab76-e94dd93ac678" />
+<img width="400" alt="Screenshot 2025-07-01 at 9 44 53 PM" src="https://github.com/user-attachments/assets/f983f6c3-aefd-4e06-953f-7b1c59691cc1" />
+<img width="400" alt="Screenshot 2025-07-01 at 9 46 41 PM" src="https://github.com/user-attachments/assets/d89f8602-d6d1-4231-a361-47fd45db8165" />
+<img width="400" alt="Screenshot 2025-07-01 at 9 46 09 PM" src="https://github.com/user-attachments/assets/16aa0a36-8fb7-4afd-97f6-ef5462973260" />
+<img width="400" alt="Screenshot 2025-07-01 at 9 45 39 PM" src="https://github.com/user-attachments/assets/4947b744-49d8-4593-8c0b-bdcf3d3d51a0" />
 
 ---
 ### Receipt Extraction Workflow
