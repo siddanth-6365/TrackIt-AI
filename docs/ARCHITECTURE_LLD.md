@@ -22,15 +22,6 @@ Primary capabilities:
   - Cloudflare Workers AI (`sqlcoder-7b-2`, `llama-4-scout`) for SQL generation and answer explanation
   - Mistral OCR with Tesseract fallback
 
-### Entry Point
-- `backend/main.py`
-  - Configures CORS for local frontend
-  - Registers routers:
-    - `/users`
-    - `/receipts`
-    - `/query`
-    - `/conversations`
-
 ## 3. Package/Module Decomposition
 
 ### API Layer (`routers/`)
@@ -281,26 +272,8 @@ Routing logic:
 - `analysis`: recommendation/pattern/insight queries.
 - `hybrid`: combines SQL answer + analysis answer.
 
-## 8. Concurrency and Execution Model
 
-- FastAPI endpoints are async.
-- Blocking provider calls are generally moved off loop using `run_in_executor`.
-- Receipt extraction path uses:
-  - Threadpool for OCR
-  - Parallel async tasks for two independent LLM calls
-- Chat pipeline is mostly sequential orchestration with async boundaries.
-
-## 9. Configuration and Secrets
-
-Loaded from environment (`python-dotenv`):
-- Supabase: `SUPABASE_URL`, `SUPABASE_KEY`
-- Auth hash salt: `PW_SALT`
-- Groq: `GROQ_API_KEY`
-- Cloudflare: `CLOUDFLARE_AUTH_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-- AWS S3: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `S3_BUCKET_NAME`, `S3_FOLDER`
-- OCR: `MISTRAL_API_KEY` (optional; fallback exists)
-
-## 10. Internal Data Contracts
+## 8. Internal Data Contracts
 
 ### Receipt extraction contract
 - Output model: `ExtractedReceipt`
